@@ -1,0 +1,7 @@
+I am text
+
+<span id="click_me">Click</span><br/>
+<div id="insert_stuff"></div>
+<button class="hidden" id="buttonid">Add to List</button></br>
+<button id="getfieldbutton">Get Field Value</button></br>
+<button id="comparebutton">Compare values</button>

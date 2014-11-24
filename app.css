@@ -1,0 +1,18 @@
+img.clickable:hover {
+	border: 5px green solid;
+} 
+img.clickable {
+	margin-left:5px;
+}
+
+.highlight {
+	box-shadow: 0 0 5px 5px green;
+}
+
+.hidden {
+	display:none;
+}
+
+button {
+	margin-top:5px;
+}
