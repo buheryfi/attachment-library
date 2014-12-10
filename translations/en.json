@@ -8,6 +8,14 @@
     "name": {
       "value": "Buddha Machine",
       "title": "app name"
+    },
+    "parameters": {
+      "storage_field": {
+        "label": {
+          "value": "User Field ID",
+          "title": "The ID of a user field (text) in which to store data for this app."
+        }
+      }
     }
   },
 
