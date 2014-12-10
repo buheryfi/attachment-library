@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # App name
 
 imagefier is an app to bookmark images and do awesome things with them
