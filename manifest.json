@@ -13,8 +13,8 @@
 
   "parameters": [
     {
-      "name": "storage_field",
-      "type": "number",
+      "name": "field_key",
+      "type": "text",
       "required": true
     }
   ]

@@ -1,6 +1,7 @@
 img.clickable:hover {
 	border: 5px green solid;
-} 
+}
+
 img.clickable {
 	margin-left:5px;
 }

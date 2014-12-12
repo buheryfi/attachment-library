@@ -18,33 +18,27 @@
 		requests: {
 			putField: function(data) {
 				return {
-					url: 'https://z3nburmaglot.zendesk.com/api/v2/users/693764476.json',
+					url: '/api/v2/users/me.json',
 					type: 'PUT',
 					dataType: 'json',
 					contentType: 'application/json; charset=UTF-8',
-					data: '{"user": {"user_fields":{"app_field":"'+data+'"}}}',
-					username: 'japeterson@zendesk.com',
-					password: 'HjV19nQm'
+					data: '{"user": {"user_fields":{"'+this.settings['field_key']+'":"'+data+'"}}}',
 				};
 			},
 
 			getField: function() {
 				return {
-					url: 'https://z3nburmaglot.zendesk.com/api/v2/users/693764476.json',
+					url: '/api/v2/users/me.json',
 					type: 'GET',
 					dataType: 'json',
-					username: 'japeterson@zendesk.com',
-					password: 'HjV19nQm'
 				};
 			},
 
 			compareField: function() {
 				return {
-					url: 'https://z3nburmaglot.zendesk.com/api/v2/users/693764476.json',
+					url: '/api/v2/users/me.json',
 					type: 'GET',
 					dataType: 'json',
-					username: 'japeterson@zendesk.com',
-					password: 'HjV19nQm'
 				};
 			}
 		},
@@ -113,18 +107,18 @@
 				put_data += val.getAttribute("src")+';';
 			});
 			var newStr = put_data.substring(0, put_data.length-1);
-			var value = data.user.user_fields.app_field;
+			var value = data.user.user_fields[this.settings['field_key']];
 			var bestData = value+';'+newStr;
 			this.ajax('putField', bestData);
 			//console.log(bestData);
 		},
 
 		show_field: function(data) {
-			var value = data.user.user_fields.app_field;
+			var value = data.user.user_fields[this.settings['field_key']];
 			var res = value.split(";");
 			console.log(res);
 			for (var i = 0; i < res.length; i++){
-				this.$("#insert_stuff").append("<img class=\"clickable\" src=\""+res[i]+"\"/>");
+				this.$("#insert_stuff").append('<img class="clickable" src="'+res[i]+'"/>');
 			}
 		}
 

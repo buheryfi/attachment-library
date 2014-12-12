@@ -10,10 +10,10 @@
       "title": "app name"
     },
     "parameters": {
-      "storage_field": {
+      "field_key": {
         "label": {
-          "value": "User Field ID",
-          "title": "The ID of a user field (text) in which to store data for this app."
+          "value": "User Field Key",
+          "title": "The key for the user text field in which to store data for this app."
         }
       }
     }
