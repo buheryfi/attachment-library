@@ -3,19 +3,19 @@
 
 	return {
 		events: {
-			'app.activated':'doSomething',
+			'app.activated':'initialize',
 			'click .btn':'toggleButtonGroup',
 			'click .clickable':'add_colour', // add class to selected images
+			
 			//working with images on page
 			'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
 			'click #add_images' : 'addToLibrary', // add selected images to library
+			
 			//working with images inside of library
 			'click #get_library':'getLibrary', // switches template to library and show images from library
-			'click #embed_images':'embed_images', 
+			'click #embed_images':'embed_images',
+			'click #remove_images':'removeImages'
 			
-			
-			'getField.done' : 'show_field',
-
 		},
 		
 
@@ -34,7 +34,7 @@
 				};
 			},
 
-			getField: function() {
+			getField: function(data) {
 				return {
 					url: '/api/v2/users/me.json',
 					type: 'GET',
@@ -43,12 +43,14 @@
 			}
 		},
 
-	    doSomething: function() {
+	    initialize: function() {
 	      this.switchTo("main");
 	      self.user_id = this.currentUser().id();
 	    },
 	    
 	    getImages: function() {
+		    // load images from current page to allow interaction with them
+		    // need to add functionality to deal with non-image attachments?
 		    this.switchTo("get");
 			this.ticket().comments().forEach(function(comment){
 				comment.imageAttachments().forEach(function(image){
@@ -58,13 +60,21 @@
 					this.user.thumbnailUrl = comment.imageAttachments()[0].thumbnailUrl();
 					var jsonText = this.user.contentUrl + " ; " + this.user.thumbnailUrl;
 				});
-				//if(comment.nonImageAttachments() !== "") {console.log(comment.nonImageAttachments().thumbnailUrl())};
 			});
 	    },
 	    
 	    getLibrary: function() {
+		    // load library page template
+		    // load data from user field and render thumbnails
 		    this.switchTo("library");
-			this.ajax('getField');
+			this.ajax('getField').done(function(data) {
+				self.library = data.user.user_fields[this.settings['field_key']];
+				var res = self.library.split(";");
+				for (var i = 0; i < res.length; i++){
+					self.$("#insert_stuff").append('<img class="clickable" src="'+res[i]+'"/>');
+				}		
+			});
+
 	    },
 	    
 	    toggleButtonGroup: function(event) {
@@ -72,16 +82,12 @@
 			function(value) {
 				this.$(value).removeClass("active");
 			});
-		this.$(event.target).addClass("active");
+			this.$(event.target).addClass("active");
     	},
 
 		add_colour: function(event) {
 			this.$(event.target).toggleClass("highlight");
-			this.show();
-		},
-
-		show: function(event) {
-			this.$(".hidden").removeClass("hidden");
+			this.$(".hidden").removeClass("hidden");		
 		},
 
 		addToLibrary: function(data,event){
@@ -92,20 +98,24 @@
 				});
 				var newStr = put_data.substring(0, put_data.length-1);
 				var value = data.user.user_fields[this.settings['field_key']];
-				var bestData = value+';'+newStr;
+				if (value !== null) {var bestData = value+';'+newStr;}
+				else {var bestData = newStr;}
+				console.log(bestData);
 				this.ajax('putField', bestData);
          	});
 		},
-
-		show_field: function(data) {
-			var value = data.user.user_fields[this.settings['field_key']];
-			var res = value.split(";");
-			console.log(res);
-			for (var i = 0; i < res.length; i++){
-				this.$("#insert_stuff").append('<img class="clickable" src="'+res[i]+'"/>');
-			}
+		
+		// will remove the thumbnail URL from user field based on user selection
+		// may still need some work on the characters used to separate fields and ability to remove them as well and not error 
+		removeImages: function(data){
+			value = this.ajax('getField', data).done(function(data) {
+				self.$(".highlight").each(function(i, val) {
+					var string = val.getAttribute("src")+';';
+					self.library = self.library.replace(string, '');
+				});
+				this.ajax('putField', self.library);
+			});
 		}
-
 
 	};
 
