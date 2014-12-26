@@ -8,6 +8,14 @@
     "name": {
       "value": "Buddha Machine",
       "title": "app name"
+    },
+    "parameters": {
+      "field_key": {
+        "label": {
+          "value": "User Field Key",
+          "title": "The key for the user text field in which to store data for this app."
+        }
+      }
     }
   },
 
