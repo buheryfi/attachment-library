@@ -4,7 +4,6 @@
 </header>
 <body>
   <div class="btn-group">
-    <button class="btn main-btn active">Main</button>
     <button id="getImage" class="btn main-btn">Page</button>
     <button id="get_library" class="btn main-btn">Library</button>
   </div>

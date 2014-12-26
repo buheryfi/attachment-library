@@ -13,7 +13,7 @@
 			
 			//working with images inside of library
 			'click #get_library':'getLibrary', // switches template to library and show images from library
-			'click #embed_images':'embed_images',
+			'click #embed_images':'embedImages',
 			'click #remove_images':'removeImages'
 			
 		},
@@ -44,7 +44,6 @@
 		},
 
 	    initialize: function() {
-	      this.switchTo("main");
 	      self.user_id = this.currentUser().id();
 	    },
 	    
@@ -55,10 +54,6 @@
 			this.ticket().comments().forEach(function(comment){
 				comment.imageAttachments().forEach(function(image){
 					this.$("#insert_stuff").append("<img class=\"clickable\" src=\""+image.thumbnailUrl()+"\"/>");
-					this.user = {};
-					this.user.contentUrl = comment.imageAttachments()[0].contentUrl();
-					this.user.thumbnailUrl = comment.imageAttachments()[0].thumbnailUrl();
-					var jsonText = this.user.contentUrl + " ; " + this.user.thumbnailUrl;
 				});
 			});
 	    },
@@ -108,13 +103,31 @@
 		// will remove the thumbnail URL from user field based on user selection
 		// may still need some work on the characters used to separate fields and ability to remove them as well and not error 
 		removeImages: function(data){
-			value = this.ajax('getField', data).done(function(data) {
-				self.$(".highlight").each(function(i, val) {
-					var string = val.getAttribute("src")+';';
-					self.library = self.library.replace(string, '');
-				});
-				this.ajax('putField', self.library);
+			self.$(".highlight").each(function(i, val) {
+				var string = val.getAttribute("src")+';';
+				self.library = self.library.replace(string, '');
 			});
+			this.ajax('putField', self.library).done(function(data) {
+				self.$("#insert_stuff").html('');
+				self.library = data.user.user_fields[this.settings['field_key']];
+				var res = self.library.split(";");
+				for (var i = 0; i < res.length; i++){
+					self.$("#insert_stuff").append('<img class="clickable" src="'+res[i]+'"/>');
+				}	
+			});
+		},
+		
+		// this currently will add the thumbnail as the embedded image rather than full-size
+		// need to determine method to add full-size image, where to store that URL so it can be
+		// easily access within this app.
+		embedImages: function(data){
+			put_data = '';
+			self.$(".highlight").each(function(i, val) {
+				put_data += "![Image from Markdown]("+val.getAttribute("src")+") " + "\n";
+			});
+			current_text = this.comment().text();
+			current_text += put_data;
+			this.comment().text(current_text);
 		}
 
 	};
