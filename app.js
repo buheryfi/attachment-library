@@ -3,22 +3,30 @@
 
 	return {
 		events: {
-			'click #click_me':'clicked_event',
-			'click .clickable':'add_colour',
-			'click #buttonid':'add_field',
-			'click #getfieldbutton':'get_field',
+			'app.activated':'doSomething',
+			'click .btn':'toggleButtonGroup',
+			'click .clickable':'add_colour', // add class to selected images
+			//working with images on page
+			'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
+			'click #add_images' : 'addToLibrary', // add selected images to library
+			//working with images inside of library
+			'click #get_library':'getLibrary', // switches template to library and show images from library
+			'click #embed_images':'embed_images', 
+			
+			
 			'getField.done' : 'show_field',
-			'click #comparebutton' : 'compare_field',
-			'compareField.done' : 'compare'
+
 		},
+		
 
 		resources: {
 		},
 
 		requests: {
+			
 			putField: function(data) {
 				return {
-					url: '/api/v2/users/me.json',
+					url: '/api/v2/users/'+user_id+'.json',
 					type: 'PUT',
 					dataType: 'json',
 					contentType: 'application/json; charset=UTF-8',
@@ -32,30 +40,17 @@
 					type: 'GET',
 					dataType: 'json',
 				};
-			},
-
-			compareField: function() {
-				return {
-					url: '/api/v2/users/me.json',
-					type: 'GET',
-					dataType: 'json',
-				};
 			}
 		},
 
-		clicked_event: function() {
-
-			var ticket = this.ticket();
-			ticket.comments().forEach(function(comment){
-				//console.log(comment.imageAttachments());
-				//console.log(comment.imageAttachments()[0].contentType());
-				//console.log(comment.imageAttachments()[0].contentUrl());
-				//console.log(comment.imageAttachments()[0].filename());
-				//console.log(comment.imageAttachments()[0].token());
-				//console.log(comment.imageAttachments()[0].thumbnailUrl());
-
-				//jsonText = JSON.stringify(user);
-				//console.log(this.jsonText);
+	    doSomething: function() {
+	      this.switchTo("main");
+	      self.user_id = this.currentUser().id();
+	    },
+	    
+	    getImages: function() {
+		    this.switchTo("get");
+			this.ticket().comments().forEach(function(comment){
 				comment.imageAttachments().forEach(function(image){
 					this.$("#insert_stuff").append("<img class=\"clickable\" src=\""+image.thumbnailUrl()+"\"/>");
 					this.user = {};
@@ -65,8 +60,20 @@
 				});
 				//if(comment.nonImageAttachments() !== "") {console.log(comment.nonImageAttachments().thumbnailUrl())};
 			});
-			//console.log(jsonText);
-		},
+	    },
+	    
+	    getLibrary: function() {
+		    this.switchTo("library");
+			this.ajax('getField');
+	    },
+	    
+	    toggleButtonGroup: function(event) {
+			_.each(this.$(event.target).parent().children(),
+			function(value) {
+				this.$(value).removeClass("active");
+			});
+		this.$(event.target).addClass("active");
+    	},
 
 		add_colour: function(event) {
 			this.$(event.target).toggleClass("highlight");
@@ -77,40 +84,17 @@
 			this.$(".hidden").removeClass("hidden");
 		},
 
-		add_field: function(data, event) {
-			var put_data = '';
-			this.$(".highlight").each(function(i, val) {
-				//put_data.push(val.getAttribute("src"));
-				put_data += val.getAttribute("src")+';';
-				//console.log(put_data);
-				//return put_data;
-			});
-			//this.ajax('putField', data);
-			//send_me = JSON.stringify(put_data);
-			var newStr = put_data.substring(0, put_data.length-1);
-			//console.log(newStr);
-			this.ajax('putField', newStr);
-		},
-
-		get_field: function(event, data) {
-			var value = this.ajax('getField', data);
-			//console.log(value);
-		},
-
-		compare_field: function(data,event){
-			var value = this.ajax('compareField', data);
-		},
-
-		compare: function(data, event){
-			var put_data = '';
-			this.$(".highlight").each(function(i, val) {
-				put_data += val.getAttribute("src")+';';
-			});
-			var newStr = put_data.substring(0, put_data.length-1);
-			var value = data.user.user_fields[this.settings['field_key']];
-			var bestData = value+';'+newStr;
-			this.ajax('putField', bestData);
-			//console.log(bestData);
+		addToLibrary: function(data,event){
+			var value = this.ajax('getField', data).done(function(data) {
+				var put_data = '';
+				this.$(".highlight").each(function(i, val) {
+					put_data += val.getAttribute("src")+';';
+				});
+				var newStr = put_data.substring(0, put_data.length-1);
+				var value = data.user.user_fields[this.settings['field_key']];
+				var bestData = value+';'+newStr;
+				this.ajax('putField', bestData);
+         	});
 		},
 
 		show_field: function(data) {

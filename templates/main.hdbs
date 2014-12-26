@@ -1,0 +1,13 @@
+<div class="selector">
+  <div class="btn-group">
+    <button class="btn sub-btn active">grp2:btn1</button>
+    <button class="btn sub-btn">grp2:btn2</button>
+    <button class="btn sub-btn">grp2:btn3</button>
+    <button class="btn sub-btn">grp2:btn4</button>
+  </div>
+  <br>
+  <div class="btn-group">
+    <button class="btn subsub-btn active">grp1:btn1</button>
+    <button class="btn subsub-btn">grp1:btn2</button>
+  </div>
+</div>

@@ -17,3 +17,19 @@ img.clickable {
 button {
 	margin-top:5px;
 }
+.selector {
+  width: 100%;
+  text-align: center;
+}
+
+.main-btn {
+  width: 33%;
+}
+
+.sub-btn {
+  width: 25%;
+}
+
+.subsub-btn {
+  width: 50%;
+}
