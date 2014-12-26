@@ -1,4 +1,4 @@
-<button id="show_library">Get Images in Library</button></br>
+<h4>Images in Your Library</h4</br>
 <div id="insert_stuff"></div>
 <button class="hidden" id="embed_images">Add Image to page as embedded image</button></br>
 <button class="hidden" id="remove_images">Remove Image from Library</button></br>
