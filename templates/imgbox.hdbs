@@ -1,0 +1,5 @@
+<li class="imgbox clickable">
+  <div style="position: relative; top: {{top}}px; left: {{left}}px;">
+    <img src="{{src}}" width="{{width}}" height="{{height}}"></img>
+  </div>
+</li>

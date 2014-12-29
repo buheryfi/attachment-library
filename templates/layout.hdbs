@@ -4,11 +4,11 @@
 </header>
 <body>
   <div class="btn-group">
-    <button id="getImage" class="btn main-btn">Page</button>
     <button id="get_library" class="btn main-btn">Library</button>
+    <button id="getImage" class="btn main-btn">Page</button>
   </div>
   <br>
-  
+
 <section data-main/>
 <br/>
 <footer>
