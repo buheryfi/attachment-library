@@ -6,10 +6,6 @@ img.clickable {
 	margin-left:5px;
 }
 
-.highlight {
-	box-shadow: 0 0 5px 5px green;
-}
-
 .hidden {
 	display:none;
 }
@@ -32,4 +28,39 @@ button {
 
 .subsub-btn {
   width: 50%;
+}
+
+.imgframe {
+	width: 100%;
+}
+
+.boxlist {
+	list-style-type: none;
+	margin: 8px 0px 0px 8px;
+	padding: 0px;
+}
+
+.imgbox {
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	display: inline-block;
+	border: 2px solid #AAAAAA;
+	box-shadow: 0px 0px 2px #999999;
+	width: 96px;
+	height: 96px;
+	text-align: center;
+	margin: 0px 8px 8px 0px;
+	padding: 5px;
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.imgbox:hover {
+	border: 2px solid #78A300;
+}
+
+.highlight {
+	box-shadow: 0px 0px 6px #679200;
+	border: 2px solid #78A300;
 }

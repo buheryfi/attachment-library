@@ -1,3 +1,7 @@
 <h4>Images on this Page</h4>
-<div id="insert_stuff"></div>
+<div class="imgframe" id="insert_stuff">
+  <ul class="boxlist">
+    {{{imageList}}}
+  </ul>
+</div>
 <button class="hidden" id="add_images">Add to Library</button>
