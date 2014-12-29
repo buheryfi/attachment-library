@@ -176,7 +176,7 @@
 		embedImages: function(data){
 			put_data = '';
 			self.$(".highlight").each(function(i, val) {
-				put_data += "![Image from Markdown]("+val.getAttribute("src")+") " + "\n";
+				put_data += "![Image from Markdown]("+val.children[0].children[0].getAttribute("src")+") " + "\n";
 			});
 			current_text = this.comment().text();
 			current_text += put_data;
