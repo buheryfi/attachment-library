@@ -134,6 +134,8 @@
 
 		add_colour: function(event) {
 			if(this.$(event.target).prop('tagName') == "IMG") {
+				this.$(event.target).parent().parent().toggleClass("highlight");
+			} else if(this.$(event.target).prop('tagName') == "DIV") {
 				this.$(event.target).parent().toggleClass("highlight");
 			} else {
 				this.$(event.target).toggleClass("highlight");
@@ -145,7 +147,7 @@
 			var value = this.ajax('getField', data).done(function(data) {
 				var put_data = '';
 				this.$(".highlight").each(function(i, val) {
-					put_data += val.children[0].getAttribute("src")+';';
+					put_data += val.children[0].children[0].getAttribute("src")+';';
 				});
 				var value = data.user.user_fields[this.settings['field_key']];
 				if (value !== null) {var bestData = value+put_data;}
@@ -159,7 +161,7 @@
 		// may still need some work on the characters used to separate fields and ability to remove them as well and not error
 		removeImages: function(data){
 			self.$(".highlight").each(function(i, val) {
-				var string = val.children[0].getAttribute("src")+';';
+				var string = val.children[0].children[0].getAttribute("src")+';';
 				self.library = self.library.replace(string, '');
 			});
 			this.ajax('putField', self.library).done(function(data) {
