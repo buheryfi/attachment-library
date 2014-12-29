@@ -102,8 +102,8 @@
 						src: img.src,
 						height: img.height,
 						width: img.width,
-						top: (img.height-82)/2,
-						left: (img.width-82)/2
+						top: (82-img.height)/2,
+						left: (82-img.width)/2
 					});
 					//self.$("#insert_stuff").append('<img class="clickable" src="'+res[i]+'"/>');
 				}
