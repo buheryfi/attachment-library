@@ -53,7 +53,10 @@ button {
 	margin: 0px 8px 8px 0px;
 	padding: 5px;
 	border-radius: 5px;
-	overflow: hidden;
+	overflow: none;
+}
+
+.document::after {
 }
 
 .imgbox:hover {
@@ -63,4 +66,8 @@ button {
 .highlight {
 	box-shadow: 0px 0px 6px #679200;
 	border: 2px solid #78A300;
+}
+
+.modal{
+width: 700px;
 }

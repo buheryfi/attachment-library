@@ -4,5 +4,26 @@
     {{{imageList}}}
   </ul>
 </div>
-<button class="hidden" id="embed_images">Add Image to page as embedded image</button></br>
-<button class="hidden" id="remove_images">Remove Image from Library</button></br>
+<div class="imgframe" id="insert_text_doc">
+	<ul class="boxlist">
+		{{{nonImageList}}}
+	</ul>
+</div>
+<button class="hidden btn btn-large" id="embed_images">Add Image to page as embedded image</button></br>
+<button class="hidden btn btn-large" id="remove_images">Remove Image from Library</button></br>
+<button class="hidden btn btn-large" id="preview_document">Preview doc</button></br>
+
+{{modal}}
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Modal header</h3>
+  </div>
+  <div class="modal-body">
+<iframe id="modalIframe" width="600" height="780" style="border: none;"></iframe>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary">Save changes</button>
+  </div>
+</div>

@@ -4,4 +4,13 @@
     {{{imageList}}}
   </ul>
 </div>
+<div class="imgframe" id="insert_text_doc">
+	<ul class="boxlist">
+		{{{nonImageList}}}
+	</ul>
+</div>
 <button class="hidden" id="add_images">Add to Library</button>
+<button class="hidden" id="add_text">Add Text</button>
+
+
+
