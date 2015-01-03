@@ -1,3 +1,4 @@
+//Need to buy icon for doc thumbnail or find a different free one - this one is not free and not licensed
 (function() {
 	var self = this;
 
@@ -10,11 +11,14 @@
 			//working with images on page
 			'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
 			'click #add_images' : 'addToLibrary', // add selected images to library
+			'click #add_text' : 'addTextToLibrary',
 
 			//working with images inside of library
 			'click #get_library':'getLibrary', // switches template to library and show images from library
 			'click #embed_images':'embedImages',
-			'click #remove_images':'removeImages'
+			'click #remove_images':'removeImages',
+			'click #preview_document': 'previewDocument',
+			'click #open_modal': 'previewDocument'
 
 		},
 
@@ -50,11 +54,30 @@
 	    getImages: function() {
 		    // load images from current page to allow interaction with them
 		    // need to add functionality to deal with non-image attachments?
+		    	/*self.$.getScript('https://www.dropbox.com/static/api/dropbox-datastores-1.2-latest.js').done(function(){
+					var client = new Dropbox.Client({key: 'in6zi416oot0aqh'});
+					
+					client.authenticate({interactive: false}, function (error) {
+						if (error) {
+							alert('Authentication error: ' + error);
+						}
+					});
+				    if (client.isAuthenticated()) {
+				    	alert ('dropbox loaded');
+				    }
+				    client.authenticate();
+			    });*/
 				var res = [];
+				var tex = [];
 				this.ticket().comments().forEach(function(comment){
-					comment.imageAttachments().forEach(function(image, i, arr){
+					comment.nonImageAttachments().forEach(function(nonImage){
+						var object = {};
+						object.url = nonImage.contentUrl();
+						object.name = nonImage.filename();
+						tex.push(object);
+					});
+					comment.imageAttachments().forEach(function(image){
 						res.push(image.contentUrl());
-						//this.$("#insert_stuff").append("<img class=\"clickable\" src=\""+image.thumbnailUrl()+"\"/>");
 					});
 				});
 				if(res.length == 0) {
@@ -74,8 +97,20 @@
 						left: (82-img.width)/2
 					});
 				}
-				//self.$("#insert_stuff").append('<img class="clickable" src="'+res[i]+'"/>');
-				this.switchTo("get", {imageList: imageList});
+				var nonImg;
+				var nonImageList = "";
+				for (var i = 0; i < tex.length; i++){
+					nonImageList += this.renderTemplate("nonimgbox",
+					{
+						name: tex[i].name,
+						url: tex[i].url,
+						height: 82,
+						width: 82,
+						top: 0,
+						left: 0
+					});
+				}
+				this.switchTo("get", {imageList: imageList, nonImageList: nonImageList});
 	    },
 
 	    getLibrary: function() {
@@ -95,19 +130,33 @@
 				var res = self.library.split(";");
 				var img;
 				var imageList = "";
+				var nonImg;
+				var nonImageList = "";
 				for (var i = 0; i < res.length-1; i++) {
-					img = this.resizeImage(res[i]);
-					imageList += this.renderTemplate("imgbox",
-					{
-						src: img.src,
-						height: img.height,
-						width: img.width,
-						top: (82-img.height)/2,
-						left: (82-img.width)/2
-					});
-					//self.$("#insert_stuff").append('<img class="clickable" src="'+res[i]+'"/>');
+					if (res[i].indexOf(",") >= 0) {
+						var tex = res[i].split(",");
+						nonImageList += this.renderTemplate("nonimgbox",
+						{
+							name: tex[1],
+							url: tex[0],
+							height: 82,
+							width: 82,
+							top: 0,
+							left: 0
+						});
+					} else {
+						img = this.resizeImage(res[i]);
+						imageList += this.renderTemplate("imgbox",
+						{
+							src: img.src,
+							height: img.height,
+							width: img.width,
+							top: (82-img.height)/2,
+							left: (82-img.width)/2
+						});
+					}
 				}
-				this.switchTo("library", {imageList: imageList});
+				this.switchTo("library", {imageList: imageList, nonImageList: nonImageList});
 			},
 
 			resizeImage: function(url) {
@@ -143,7 +192,7 @@
 			this.$(".hidden").removeClass("hidden");
 		},
 
-		addToLibrary: function(data,event){
+		addToLibrary: function(data){
 			var value = this.ajax('getField', data).done(function(data) {
 				var put_data = '';
 				this.$(".highlight").each(function(i, val) {
@@ -152,13 +201,26 @@
 				var value = data.user.user_fields[this.settings['field_key']];
 				if (value !== null) {var bestData = value+put_data;}
 				else {var bestData = put_data;}
-				console.log(bestData);
 				this.ajax('putField', bestData);
          	});
 		},
+		
+		// add nonImage attachment to library, with both filename and content URL
+		addTextToLibrary: function(data){
+			var value = this.ajax('getField', data).done(function(data) {
+				var put_data = '';
+				this.$(".highlight").each(function(i, val) {
+					put_data += val.children[0].children[0].getAttribute("data-url")+',';
+					put_data += val.children[0].children[0].getAttribute("alt")+';';
+				});
+				var value = data.user.user_fields[this.settings['field_key']];
+				if (value !== null) {var bestData = value+put_data;}
+				else {var bestData = put_data;}
+				this.ajax('putField', bestData);
+			});	
+		},
 
 		// will remove the thumbnail URL from user field based on user selection
-		// may still need some work on the characters used to separate fields and ability to remove them as well and not error
 		removeImages: function(data){
 			self.$(".highlight").each(function(i, val) {
 				var string = val.children[0].children[0].getAttribute("src")+';';
@@ -170,9 +232,7 @@
 			});
 		},
 
-		// this currently will add the thumbnail as the embedded image rather than full-size
-		// need to determine method to add full-size image, where to store that URL so it can be
-		// easily access within this app.
+		// will embed an image with Markdown into ticket based on user action
 		embedImages: function(data){
 			put_data = '';
 			self.$(".highlight").each(function(i, val) {
@@ -181,8 +241,15 @@
 			current_text = this.comment().text();
 			current_text += put_data;
 			this.comment().text(current_text);
+		},
+		
+		previewDocument: function(data, target){
+			var log = self.$(".highlight > div > img").data('url');
+			//console.log(log.data('url'));
+			var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
+			this.$('#modalIframe').attr('src', url);
+			this.$('#myModal').modal('show');			
 		}
-
 	};
 
 }());
