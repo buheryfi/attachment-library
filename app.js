@@ -77,12 +77,11 @@
 				var imageList = "";
 				for (var i = 0; i < res.length; i++) {
 					img = this.resizeImage(res[i]);
-					console.log(img);
 					imageList += this.renderTemplate("imgbox",
 					{
 						type: "image",
 						src: img.src,
-						alt: img.alt,
+						alt: res[i].name,
 						height: img.height,
 						width: img.width,
 						top: (82-img.height)/2,
@@ -109,52 +108,48 @@
 	    getLibrary: function() {
 		    // load library page template
 		    // load data from user field and render thumbnails
-				this.ajax('getField').done(function(data) {
-					self.library = data.user.user_fields[this.settings['field_key']];
-					this.renderLibrary();
-				});
+			this.ajax('getField').done(function(data) {
+				self.library = data.user.user_fields[this.settings['field_key']];
+				this.renderLibrary();
+			});
 	    },
-			renderLibrary: function() {
-				if(self.library == null) {
-					this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
-					return;
+		renderLibrary: function() {
+			if(self.library == null) {
+				this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
+				return;
+			}
+			var res = self.library.split(";");
+			var img;
+			var imageList = "";
+			for (var i = 0; i < res.length-1; i++){
+				var attachment = res[i].split(",");
+				if (attachment[2] == "image"){
+					var imageObject = this.resizeImage(res[i]);
+					imageObject.alt = attachment[1];
+				} else if (attachment[2] == "text") {
+					imageObject = new Image();
+					imageObject.src = '';
+					imageObject.height = 0;
+					imageObject.width = 0;
+					imageObject.alt = attachment[1];
 				}
-				var res = self.library.split(";");
-				var img;
-				var imageList = "";
-				var nonImg;
-				var nonImageList = "";
-				for (var i = 0; i < res.length-1; i++) {
-					if (res[i].indexOf(",") >= 0) {
-						var tex = res[i].split(",");
-						nonImageList += this.renderTemplate("nonimgbox",
-						{
-							name: tex[1],
-							url: tex[0],
-							height: 82,
-							width: 82,
-							top: 0,
-							left: 0
-						});
-					} else {
-						img = this.resizeImage(res[i]);
-						imageList += this.renderTemplate("imgbox",
-						{
-							src: img.src,
-							height: img.height,
-							width: img.width,
-							top: (82-img.height)/2,
-							left: (82-img.width)/2
-						});
-					}
-				}
-				this.switchTo("library", {imageList: imageList, nonImageList: nonImageList});
-			},
+				imageList += this.renderTemplate("imgbox",
+				{
+					alt: imageObject.alt,
+					src: imageObject.src,
+					height: imageObject.height,
+					width: imageObject.width,
+					top: (82-imageObject.height)/2,
+					left: (82-imageObject.width)/2
+				});
+			}
+			this.switchTo("library", {imageList: imageList});
+		},
 
+			// take alt out, or rename so that way this function name makes more sense.
 			resizeImage: function(object) {
 				var img = new Image();
 				img.src = object.url;
-				img.alt = object.name;
 				var ratio;
 				if(img.width > img.height) {
 					ratio = 82/img.width;
@@ -191,14 +186,14 @@
 				var put_data = '';
 				this.$(".highlight").each(function(i, val) {
 					if (val.getAttribute("class").indexOf("image") !== -1 ) {
-					put_data += val.children[0].children[0].getAttribute("src")+',';
-					put_data += val.children[0].children[0].getAttribute("alt")+',';
-					put_data += "img;";
+						put_data += val.children[0].children[0].getAttribute("src")+',';
+						put_data += val.children[0].children[0].getAttribute("alt")+',';
+						put_data += "image;";
 					}
 					else if (val.getAttribute("class").indexOf("doc")) {
-					put_data += val.children[0].children[0].getAttribute("data-url")+',';
-					put_data += val.children[0].children[0].getAttribute("alt")+',';
-					put_data += "txt;";
+						put_data += val.children[0].children[0].getAttribute("data-url")+',';
+						put_data += val.children[0].children[0].getAttribute("alt")+',';
+						put_data += "text;";
 					}
 				});
 				var value = data.user.user_fields[this.settings['field_key']];
@@ -207,21 +202,6 @@
 				this.ajax('putField', bestData);
          	});
 		},
-		
-		// add nonImage attachment to library, with both filename and content URL
-		/*addTextToLibrary: function(data){
-			var value = this.ajax('getField', data).done(function(data) {
-				var put_data = '';
-				this.$(".highlight").each(function(i, val) {
-					put_data += val.children[0].children[0].getAttribute("data-url")+',';
-					put_data += val.children[0].children[0].getAttribute("alt")+';';
-				});
-				var value = data.user.user_fields[this.settings['field_key']];
-				if (value !== null) {var bestData = value+put_data;}
-				else {var bestData = put_data;}
-				this.ajax('putField', bestData);
-			});	
-		},*/
 
 		// will remove the thumbnail URL from user field based on user selection
 		removeImages: function(data){
@@ -239,6 +219,7 @@
 		embedImages: function(data){
 			put_data = '';
 			self.$(".highlight").each(function(i, val) {
+				console.log(val);
 				put_data += "![Image from Markdown]("+val.children[0].children[0].getAttribute("src")+") " + "\n";
 			});
 			current_text = this.comment().text();
