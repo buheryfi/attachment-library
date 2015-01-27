@@ -52,21 +52,7 @@
 	    },
 
 	    getImages: function() {
-		    // load images from current page to allow interaction with them
-		    // need to add functionality to deal with non-image attachments?
-		    	/*self.$.getScript('https://www.dropbox.com/static/api/dropbox-datastores-1.2-latest.js').done(function(){
-					var client = new Dropbox.Client({key: 'in6zi416oot0aqh'});
-					
-					client.authenticate({interactive: false}, function (error) {
-						if (error) {
-							alert('Authentication error: ' + error);
-						}
-					});
-				    if (client.isAuthenticated()) {
-				    	alert ('dropbox loaded');
-				    }
-				    client.authenticate();
-			    });*/
+		    // load attachments from current page to allow interaction with them
 				var res = [];
 				var tex = [];
 				this.ticket().comments().forEach(function(comment){
@@ -77,7 +63,10 @@
 						tex.push(object);
 					});
 					comment.imageAttachments().forEach(function(image){
-						res.push(image.contentUrl());
+						var object = {};
+						object.url = image.contentUrl();
+						object.name = image.filename();
+						res.push(object);
 					});
 				});
 				if(res.length == 0) {
@@ -88,9 +77,12 @@
 				var imageList = "";
 				for (var i = 0; i < res.length; i++) {
 					img = this.resizeImage(res[i]);
+					console.log(img);
 					imageList += this.renderTemplate("imgbox",
 					{
+						type: "image",
 						src: img.src,
+						alt: img.alt,
 						height: img.height,
 						width: img.width,
 						top: (82-img.height)/2,
@@ -102,6 +94,7 @@
 				for (var i = 0; i < tex.length; i++){
 					nonImageList += this.renderTemplate("nonimgbox",
 					{
+						type: "doc",
 						name: tex[i].name,
 						url: tex[i].url,
 						height: 82,
@@ -121,7 +114,6 @@
 					this.renderLibrary();
 				});
 	    },
-
 			renderLibrary: function() {
 				if(self.library == null) {
 					this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
@@ -159,9 +151,10 @@
 				this.switchTo("library", {imageList: imageList, nonImageList: nonImageList});
 			},
 
-			resizeImage: function(url) {
+			resizeImage: function(object) {
 				var img = new Image();
-				img.src = url;
+				img.src = object.url;
+				img.alt = object.name;
 				var ratio;
 				if(img.width > img.height) {
 					ratio = 82/img.width;
@@ -192,11 +185,21 @@
 			this.$(".hidden").removeClass("hidden");
 		},
 
+		//add attachments to library, including URL, name, and type (txt or image)
 		addToLibrary: function(data){
 			var value = this.ajax('getField', data).done(function(data) {
 				var put_data = '';
 				this.$(".highlight").each(function(i, val) {
-					put_data += val.children[0].children[0].getAttribute("src")+';';
+					if (val.getAttribute("class").indexOf("image") !== -1 ) {
+					put_data += val.children[0].children[0].getAttribute("src")+',';
+					put_data += val.children[0].children[0].getAttribute("alt")+',';
+					put_data += "img;";
+					}
+					else if (val.getAttribute("class").indexOf("doc")) {
+					put_data += val.children[0].children[0].getAttribute("data-url")+',';
+					put_data += val.children[0].children[0].getAttribute("alt")+',';
+					put_data += "txt;";
+					}
 				});
 				var value = data.user.user_fields[this.settings['field_key']];
 				if (value !== null) {var bestData = value+put_data;}
@@ -206,7 +209,7 @@
 		},
 		
 		// add nonImage attachment to library, with both filename and content URL
-		addTextToLibrary: function(data){
+		/*addTextToLibrary: function(data){
 			var value = this.ajax('getField', data).done(function(data) {
 				var put_data = '';
 				this.$(".highlight").each(function(i, val) {
@@ -218,7 +221,7 @@
 				else {var bestData = put_data;}
 				this.ajax('putField', bestData);
 			});	
-		},
+		},*/
 
 		// will remove the thumbnail URL from user field based on user selection
 		removeImages: function(data){
@@ -245,7 +248,6 @@
 		
 		previewDocument: function(data, target){
 			var log = self.$(".highlight > div > img").data('url');
-			//console.log(log.data('url'));
 			var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
 			this.$('#modalIframe').attr('src', url);
 			this.$('#myModal').modal('show');			
