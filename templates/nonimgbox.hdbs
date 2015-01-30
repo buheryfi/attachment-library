@@ -1,4 +1,4 @@
-<li class="imgbox clickable">
+<li class="imgbox clickable {{type}}">
   <div style="position: relative; top: {{top}}px; left: {{left}}px;">
     <img src="{{assetURL 'doc.png'}}" width="{{width}}" height="{{height}}" alt="{{name}}" data-url="{{url}}"></img>
     <span class="document" style="z-index:1000; color:black; display: block; font-size:6px; width: {{width}}px; height: {{height}}px;">{{name}}</span>

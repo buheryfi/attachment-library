@@ -10,6 +10,7 @@
 
 			//working with images on page
 			'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
+			'click #getExternal': 'getExternal',
 			'click #add_images' : 'addToLibrary', // add selected images to library
 			'click #add_text' : 'addTextToLibrary',
 
@@ -18,7 +19,9 @@
 			'click #embed_images':'embedImages',
 			'click #remove_images':'removeImages',
 			'click #preview_document': 'previewDocument',
-			'click #open_modal': 'previewDocument'
+			'click #open_modal': 'previewDocument',
+			
+			'click #addExternal': 'addExternalToLibrary'
 
 		},
 
@@ -52,57 +55,63 @@
 	    },
 
 	    getImages: function() {
-		    // load attachments from current page to allow interaction with them
-				var res = [];
-				var tex = [];
+		    // load attachments from current page to allow interaction with them	
+		    	//load attachments	    
+				var att = [];
 				this.ticket().comments().forEach(function(comment){
 					comment.nonImageAttachments().forEach(function(nonImage){
 						var object = {};
 						object.url = nonImage.contentUrl();
 						object.name = nonImage.filename();
-						tex.push(object);
+						object.type = "text";
+						att.push(object);
 					});
 					comment.imageAttachments().forEach(function(image){
 						var object = {};
 						object.url = image.contentUrl();
 						object.name = image.filename();
-						res.push(object);
+						object.type = "image";
+						att.push(object);
 					});
 				});
-				if(res.length == 0) {
+				if(att.length == 0) {
 					this.switchTo("get", {imageList: "<li class=\"imgbox\"><br>No Attachments Found</li>"});
 					return;
 				}
-				var img;
-				var imageList = "";
-				for (var i = 0; i < res.length; i++) {
-					img = this.resizeImage(res[i]);
-					imageList += this.renderTemplate("imgbox",
-					{
-						type: "image",
-						src: img.src,
-						alt: res[i].name,
-						height: img.height,
-						width: img.width,
-						top: (82-img.height)/2,
-						left: (82-img.width)/2
-					});
+				//  render attachments
+				var attachment;
+				var attachmentList = "";
+				for (var i = 0; i < att.length; i++){
+					if (att[i].type == "text"){
+						attachmentList += this.renderTemplate("imgbox",
+						{
+							type: att[i].type,
+							src: '',
+							alt: att[i].name,
+							height: 0,
+							width: 0,
+							top: 0,
+							left: 0,
+							data_url: att[i].url
+						});
+					}
+					else if (att[i].type == "image"){
+						attachment = this.resizeImage(att[i].url);
+						attachmentList += this.renderTemplate("imgbox",
+						{
+							type: att[i].type,
+							src: att[i].url,
+							alt: att[i].name,
+							height: attachment.height,
+							width: attachment.width,
+							top: (82-attachment.height)/2,
+							left: (82-attachment.width)/2,
+							data_url: att[i].url
+						});
+					}
+					else {return}; 
 				}
-				var nonImg;
-				var nonImageList = "";
-				for (var i = 0; i < tex.length; i++){
-					nonImageList += this.renderTemplate("nonimgbox",
-					{
-						type: "doc",
-						name: tex[i].name,
-						url: tex[i].url,
-						height: 82,
-						width: 82,
-						top: 0,
-						left: 0
-					});
-				}
-				this.switchTo("get", {imageList: imageList, nonImageList: nonImageList});
+				this.switchTo("get", {imageList: attachmentList});
 	    },
 
 	    getLibrary: function() {
@@ -113,6 +122,7 @@
 				this.renderLibrary();
 			});
 	    },
+	    
 		renderLibrary: function() {
 			if(self.library == null) {
 				this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
@@ -124,14 +134,20 @@
 			for (var i = 0; i < res.length-1; i++){
 				var attachment = res[i].split(",");
 				if (attachment[2] == "image"){
-					var imageObject = this.resizeImage(res[i]);
+					var imageObject = this.resizeImage(attachment[0]);
 					imageObject.alt = attachment[1];
+					imageObject.data_url = attachment[0];
+					imageObject.top = (82-imageObject.height)/2;
+					imageObject.left = (82-imageObject.width)/2;
 				} else if (attachment[2] == "text") {
-					imageObject = new Image();
+					var imageObject = new Image();
 					imageObject.src = '';
 					imageObject.height = 0;
 					imageObject.width = 0;
 					imageObject.alt = attachment[1];
+					imageObject.data_url = attachment[0];
+					imageObject.top = 0;
+					imageObject.left = 0;
 				}
 				imageList += this.renderTemplate("imgbox",
 				{
@@ -139,34 +155,36 @@
 					src: imageObject.src,
 					height: imageObject.height,
 					width: imageObject.width,
-					top: (82-imageObject.height)/2,
-					left: (82-imageObject.width)/2
+					top: imageObject.top,
+					left: imageObject.left,
+					data_url: imageObject.data_url
 				});
 			}
 			this.switchTo("library", {imageList: imageList});
 		},
 
-			// take alt out, or rename so that way this function name makes more sense.
-			resizeImage: function(object) {
-				var img = new Image();
-				img.src = object.url;
-				var ratio;
-				if(img.width > img.height) {
-					ratio = 82/img.width;
-				} else {
-					ratio = 82/img.height;
-				}
-				img.height *= ratio;
-				img.width *= ratio;
-				return img;
-			},
+		resizeImage: function(object) {
+			var img = new Image();
+			img.src = object;
+			var ratio;
+			if(img.width > img.height) {
+				ratio = 82/img.width;
+			} else {
+				ratio = 82/img.height;
+			}
+			img.height *= ratio;
+			img.width *= ratio;
+			return img;
+		},
 
 	    toggleButtonGroup: function(event) {
-			_.each(this.$(event.target).parent().children(),
-			function(value) {
-				this.$(value).removeClass("active");
-			});
-			this.$(event.target).addClass("active");
+		    if(this.$(event.target).parent().hasClass("btn-group")) {
+			    _.each(this.$(event.target).parent().children(),
+				function(value) {
+					this.$(value).removeClass("active");
+				});
+				this.$(event.target).addClass("active");
+		    }
     	},
 
 		add_colour: function(event) {
@@ -185,14 +203,16 @@
 			var value = this.ajax('getField', data).done(function(data) {
 				var put_data = '';
 				this.$(".highlight").each(function(i, val) {
+					var alt = val.children[0].children[0].getAttribute("alt");
+					alt = alt.replace(/[,;]/g , ' ');
 					if (val.getAttribute("class").indexOf("image") !== -1 ) {
 						put_data += val.children[0].children[0].getAttribute("src")+',';
-						put_data += val.children[0].children[0].getAttribute("alt")+',';
+						put_data += alt+',';
 						put_data += "image;";
 					}
 					else if (val.getAttribute("class").indexOf("doc")) {
 						put_data += val.children[0].children[0].getAttribute("data-url")+',';
-						put_data += val.children[0].children[0].getAttribute("alt")+',';
+						put_data += alt+',';
 						put_data += "text;";
 					}
 				});
@@ -219,7 +239,6 @@
 		embedImages: function(data){
 			put_data = '';
 			self.$(".highlight").each(function(i, val) {
-				console.log(val);
 				put_data += "![Image from Markdown]("+val.children[0].children[0].getAttribute("src")+") " + "\n";
 			});
 			current_text = this.comment().text();
@@ -228,10 +247,23 @@
 		},
 		
 		previewDocument: function(data, target){
-			var log = self.$(".highlight > div > img").data('url');
+			var log = self.$(".highlight > div > img").attr('data_url');
 			var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
 			this.$('#modalIframe').attr('src', url);
 			this.$('#myModal').modal('show');			
+		},
+		
+		getExternal: function() {
+			this.switchTo("external");
+		},
+		
+		addExternalToLibrary: function() {
+			var value = this.ajax('getField').done(function(data) {
+				var value = data.user.user_fields[this.settings['field_key']];
+				if (value !== null) {var bestData = value+this.$("#externalURL").val()+';';}
+				else {var bestData = this.$("#externalURL").val();}
+				this.ajax('putField', bestData);
+			});
 		}
 	};
 

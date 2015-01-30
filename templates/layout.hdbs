@@ -6,6 +6,7 @@
   <div class="btn-group">
     <button id="get_library" class="btn main-btn">Library</button>
     <button id="getImage" class="btn main-btn">Page</button>
+    <button id="getExternal" class="btn main-btn">External</button>
   </div>
   <br>
 
