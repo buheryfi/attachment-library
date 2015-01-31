@@ -21,7 +21,15 @@
 			'click #preview_document': 'previewDocument',
 			'click #open_modal': 'previewDocument',
 			
-			'click #addExternal': 'addExternalToLibrary'
+			'click #addExternal': 'addExternalToLibrary',
+			
+			
+			'putField.done': function() {
+				services.notify('Item(s) Successfully Added.');
+			},
+			'putField.fail': function() {
+				services.notify('Item(s) could not be added.  Contact your administrator.');
+			}
 
 		},
 
@@ -139,6 +147,7 @@
 					imageObject.data_url = attachment[0];
 					imageObject.top = (82-imageObject.height)/2;
 					imageObject.left = (82-imageObject.width)/2;
+					imageObject.type = "image";
 				} else if (attachment[2] == "text") {
 					var imageObject = new Image();
 					imageObject.src = '';
@@ -148,6 +157,7 @@
 					imageObject.data_url = attachment[0];
 					imageObject.top = 0;
 					imageObject.left = 0;
+					imageObject.type = "text";
 				}
 				imageList += this.renderTemplate("imgbox",
 				{
@@ -157,7 +167,8 @@
 					width: imageObject.width,
 					top: imageObject.top,
 					left: imageObject.left,
-					data_url: imageObject.data_url
+					data_url: imageObject.data_url,
+					type: imageObject.type
 				});
 			}
 			this.switchTo("library", {imageList: imageList});
@@ -211,7 +222,7 @@
 						put_data += "image;";
 					}
 					else if (val.getAttribute("class").indexOf("doc")) {
-						put_data += val.children[0].children[0].getAttribute("data-url")+',';
+						put_data += val.children[0].children[0].getAttribute("data-contentURL")+',';
 						put_data += alt+',';
 						put_data += "text;";
 					}
@@ -224,9 +235,12 @@
 		},
 
 		// will remove the thumbnail URL from user field based on user selection
+		// this does not work with new data model.
+		// currently we are removing based on matching a URL string. 
+		// this needs to account for a different data structure, using the index
 		removeImages: function(data){
 			self.$(".highlight").each(function(i, val) {
-				var string = val.children[0].children[0].getAttribute("src")+';';
+				var string = val.children[0].children[0].getAttribute("data-contentURL")+';';
 				self.library = self.library.replace(string, '');
 			});
 			this.ajax('putField', self.library).done(function(data) {
@@ -246,8 +260,9 @@
 			this.comment().text(current_text);
 		},
 		
+		// show preview of selected Text File using Google Docs API in a modal Iframe
 		previewDocument: function(data, target){
-			var log = self.$(".highlight > div > img").attr('data_url');
+			var log = self.$(".highlight > div > img").attr('data-contenturl');
 			var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
 			this.$('#modalIframe').attr('src', url);
 			this.$('#myModal').modal('show');			
@@ -257,7 +272,15 @@
 			this.switchTo("external");
 		},
 		
+		//  This allows the end-user to add images or files hosted externally to be stored
+		//  inside of their library
+		// how should we determine if this is image or text?
+		// look at mime type, extension, or allow for user choice?
+		// should we restrict which types of extensions can be added?
+		// what is to stop him from uploading other types of files? OK?
 		addExternalToLibrary: function() {
+			var fileLocation = this.$("externalURL").val()+',';
+			var fileName = this.$("#externalFileName").val()+',';
 			var value = this.ajax('getField').done(function(data) {
 				var value = data.user.user_fields[this.settings['field_key']];
 				if (value !== null) {var bestData = value+this.$("#externalURL").val()+';';}
