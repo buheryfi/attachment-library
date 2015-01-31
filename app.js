@@ -10,20 +10,21 @@
 
 			//working with images on page
 			'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
-			'click #getExternal': 'getExternal',
 			'click #add_images' : 'addToLibrary', // add selected images to library
 			'click #add_text' : 'addTextToLibrary',
 
 			//working with images inside of library
 			'click #get_library':'getLibrary', // switches template to library and show images from library
 			'click #embed_images':'embedImages',
+			'click #embed_link':'embedLinks',
 			'click #remove_images':'removeImages',
-			'click #preview_document': 'previewDocument',
-			'click #open_modal': 'previewDocument',
+			'click #preview_item': 'previewItem',
 			
+			// working with Remote Content
+			'click #getExternal': 'getExternal',
 			'click #addExternal': 'addExternalToLibrary',
 			
-			
+			// Growler notifications for external requests
 			'putField.done': function() {
 				services.notify('Item(s) Successfully Added.');
 			},
@@ -64,7 +65,6 @@
 
 	    getImages: function() {
 		    // load attachments from current page to allow interaction with them	
-		    	//load attachments	    
 				var att = [];
 				this.ticket().comments().forEach(function(comment){
 					comment.nonImageAttachments().forEach(function(nonImage){
@@ -198,6 +198,9 @@
 		    }
     	},
 
+		// this function handles the currently selected item by toggling classes
+		// and also detects how many items selected, and disables
+		// the preview button should more than one item be selected.
 		add_colour: function(event) {
 			if(this.$(event.target).prop('tagName') == "IMG") {
 				this.$(event.target).parent().parent().toggleClass("highlight");
@@ -206,6 +209,9 @@
 			} else {
 				this.$(event.target).toggleClass("highlight");
 			}
+			var numItems = this.$(".highlight").length;
+			if ( numItems > 1) {this.$("#preview_item").prop("disabled", true); }
+			else if ( numItems <= 1) {this.$("#preview_item").prop("disabled", false);}
 			this.$(".hidden").removeClass("hidden");
 		},
 
@@ -260,8 +266,18 @@
 			this.comment().text(current_text);
 		},
 		
+		embedLinks: function(data){
+			put_data = '';
+			self.$(".highlight").each(function(i, val) {
+				put_data += "["+val.children[0].children[0].getAttribute("alt")+"]("+val.children[0].children[0].getAttribute("data-contentURL")+")";
+			});
+			current_text = this.comment().text();
+			current_text += put_data;
+			this.comment().text(current_text);	
+		},
+		
 		// show preview of selected Text File using Google Docs API in a modal Iframe
-		previewDocument: function(data, target){
+		previewItem: function(data, target){
 			var log = self.$(".highlight > div > img").attr('data-contenturl');
 			var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
 			this.$('#modalIframe').attr('src', url);

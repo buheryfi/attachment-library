@@ -13,7 +13,5 @@
 <section data-main/>
 <br/>
 <footer>
-  <a href="mailto:{{author.email}}">
-    {{author.name}}
-  </a>
+  <span> Please contact <a href="mailto:{{author.email}}"> {{author.name}} </a> for assistance or suggestions</span>
 </footer>
