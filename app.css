@@ -10,9 +10,10 @@ img.clickable {
 	display:none;
 }
 
-button {
+.btn {
 	margin-top:5px;
 }
+
 .selector {
   width: 100%;
   text-align: center;
@@ -53,7 +54,7 @@ button {
 	margin: 0px 8px 8px 0px;
 	padding: 5px;
 	border-radius: 5px;
-	overflow: none;
+	overflow: hidden;
 }
 
 .document::after {
@@ -69,5 +70,9 @@ button {
 }
 
 .modal{
-width: 700px;
+	width: 700px;
+}
+
+#externalURL {
+	width: 300px;
 }

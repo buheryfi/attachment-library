@@ -1,0 +1,4 @@
+<h4>Add File from Web</h4></br>
+<input id="externalURL" type="text" placeholder="Enter external file URL here!"></input><br>
+<input id="externalFileName" type="text" placeholder="Enter a name for the file here!"></input><br>
+<div id="addExternal" class="btn">Add to Library</div>

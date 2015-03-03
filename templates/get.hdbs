@@ -4,13 +4,21 @@
     {{{imageList}}}
   </ul>
 </div>
-<div class="imgframe" id="insert_text_doc">
-	<ul class="boxlist">
-		{{{nonImageList}}}
-	</ul>
+<button class="hidden btn btn-large" id="add_images">Add Item(s) to Library</button></br>
+<button class="hidden btn btn-large" id="preview_item">Preview Item (only one may be selected)</button></br>
+<button class="hidden btn btn-large" id="embed_images">Add Image(s) to page as embedded image(s)</button></br>
+<button class="hidden btn btn-large" id="embed_link">Add Item(s) to page as link(s)</button></br>
+
+{{modal}}
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Document Preview</h3>
+  </div>
+  <div class="modal-body" style="text-align: center;">
+<iframe id="modalIframe" width="600" height="780" style="border: none;"></iframe>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
 </div>
-<button class="hidden" id="add_images">Add to Library</button>
-<button class="hidden" id="add_text">Add Text</button>
-
-
-
