@@ -19,11 +19,11 @@
 			'click #embed_link':'embedLinks',
 			'click #remove_images':'removeImages',
 			'click #preview_item': 'previewItem',
-			
+
 			// working with Remote Content
 			'click #getExternal': 'getExternal',
 			'click #addExternal': 'addExternalToLibrary',
-			
+
 			// Growler notifications for external requests
 			'putField.done': function() {
 				services.notify('Item(s) Successfully Added.');
@@ -59,78 +59,78 @@
 			}
 		},
 
-	    initialize: function() {
-	      self.user_id = this.currentUser().id();
-	    },
+		initialize: function() {
+			self.user_id = this.currentUser().id();
+		},
 
-	    getImages: function() {
-		    // load attachments from current page to allow interaction with them	
-				var att = [];
-				this.ticket().comments().forEach(function(comment){
-					comment.nonImageAttachments().forEach(function(nonImage){
-						var object = {};
-						object.url = nonImage.contentUrl();
-						object.name = nonImage.filename();
-						object.type = "text";
-						att.push(object);
-					});
-					comment.imageAttachments().forEach(function(image){
-						var object = {};
-						object.url = image.contentUrl();
-						object.name = image.filename();
-						object.type = "image";
-						att.push(object);
-					});
+		getImages: function() {
+			// load attachments from current page to allow interaction with them
+			var att = [];
+			this.ticket().comments().forEach(function(comment){
+				comment.nonImageAttachments().forEach(function(nonImage){
+					var object = {};
+					object.url = nonImage.contentUrl();
+					object.name = nonImage.filename();
+					object.type = "text";
+					att.push(object);
 				});
-				if(att.length == 0) {
-					this.switchTo("get", {imageList: "<li class=\"imgbox\"><br>No Attachments Found</li>"});
-					return;
+				comment.imageAttachments().forEach(function(image){
+					var object = {};
+					object.url = image.contentUrl();
+					object.name = image.filename();
+					object.type = "image";
+					att.push(object);
+				});
+			});
+			if(att.length == 0) {
+				this.switchTo("get", {imageList: "<li class=\"imgbox\"><br>No Attachments Found</li>"});
+				return;
+			}
+			//  render attachments
+			var attachment;
+			var attachmentList = "";
+			for (var i = 0; i < att.length; i++){
+				if (att[i].type == "text"){
+					attachmentList += this.renderTemplate("imgbox",
+					{
+						type: att[i].type,
+						src: '',
+						alt: att[i].name,
+						height: 0,
+						width: 0,
+						top: 0,
+						left: 0,
+						data_url: att[i].url
+					});
 				}
-				//  render attachments
-				var attachment;
-				var attachmentList = "";
-				for (var i = 0; i < att.length; i++){
-					if (att[i].type == "text"){
-						attachmentList += this.renderTemplate("imgbox",
-						{
-							type: att[i].type,
-							src: '',
-							alt: att[i].name,
-							height: 0,
-							width: 0,
-							top: 0,
-							left: 0,
-							data_url: att[i].url
-						});
-					}
-					else if (att[i].type == "image"){
-						attachment = this.resizeImage(att[i].url);
-						attachmentList += this.renderTemplate("imgbox",
-						{
-							type: att[i].type,
-							src: att[i].url,
-							alt: att[i].name,
-							height: attachment.height,
-							width: attachment.width,
-							top: (82-attachment.height)/2,
-							left: (82-attachment.width)/2,
-							data_url: att[i].url
-						});
-					}
-					else {return}; 
+				else if (att[i].type == "image"){
+					attachment = this.resizeImage(att[i].url);
+					attachmentList += this.renderTemplate("imgbox",
+					{
+						type: att[i].type,
+						src: att[i].url,
+						alt: att[i].name,
+						height: attachment.height,
+						width: attachment.width,
+						top: (82-attachment.height)/2,
+						left: (82-attachment.width)/2,
+						data_url: att[i].url
+					});
 				}
-				this.switchTo("get", {imageList: attachmentList});
-	    },
+				else {return};
+			}
+			this.switchTo("get", {imageList: attachmentList});
+		},
 
-	    getLibrary: function() {
-		    // load library page template
-		    // load data from user field and render thumbnails
+		getLibrary: function() {
+			// load library page template
+			// load data from user field and render thumbnails
 			this.ajax('getField').done(function(data) {
 				self.library = data.user.user_fields[this.settings['field_key']];
 				this.renderLibrary();
 			});
-	    },
-	    
+		},
+
 		renderLibrary: function() {
 			if(self.library == null) {
 				this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
@@ -141,15 +141,16 @@
 			var imageList = "";
 			for (var i = 0; i < res.length-1; i++){
 				var attachment = res[i].split(",");
+				var imageObject = {};
 				if (attachment[2] == "image"){
-					var imageObject = this.resizeImage(attachment[0]);
+					imageObject = this.resizeImage(attachment[0]);
 					imageObject.alt = attachment[1];
 					imageObject.data_url = attachment[0];
 					imageObject.top = (82-imageObject.height)/2;
 					imageObject.left = (82-imageObject.width)/2;
 					imageObject.type = "image";
 				} else if (attachment[2] == "text") {
-					var imageObject = new Image();
+					imageObject = new Image();
 					imageObject.src = '';
 					imageObject.height = 0;
 					imageObject.width = 0;
@@ -188,15 +189,15 @@
 			return img;
 		},
 
-	    toggleButtonGroup: function(event) {
-		    if(this.$(event.target).parent().hasClass("btn-group")) {
-			    _.each(this.$(event.target).parent().children(),
+		toggleButtonGroup: function(event) {
+			if(this.$(event.target).parent().hasClass("btn-group")) {
+				_.each(this.$(event.target).parent().children(),
 				function(value) {
 					this.$(value).removeClass("active");
 				});
 				this.$(event.target).addClass("active");
-		    }
-    	},
+			}
+		},
 
 		// this function handles the currently selected item by toggling classes
 		// and also detects how many items selected, and disables
@@ -237,12 +238,12 @@
 				if (value !== null) {var bestData = value+put_data;}
 				else {var bestData = put_data;}
 				this.ajax('putField', bestData);
-         	});
+			});
 		},
 
 		// will remove the thumbnail URL from user field based on user selection
 		// this does not work with new data model.
-		// currently we are removing based on matching a URL string. 
+		// currently we are removing based on matching a URL string.
 		// this needs to account for a different data structure, using the index
 		removeImages: function(data){
 			self.$(".highlight").each(function(i, val) {
@@ -265,7 +266,7 @@
 			current_text += put_data;
 			this.comment().text(current_text);
 		},
-		
+
 		embedLinks: function(data){
 			put_data = '';
 			self.$(".highlight").each(function(i, val) {
@@ -273,21 +274,21 @@
 			});
 			current_text = this.comment().text();
 			current_text += put_data;
-			this.comment().text(current_text);	
+			this.comment().text(current_text);
 		},
-		
+
 		// show preview of selected Text File using Google Docs API in a modal Iframe
 		previewItem: function(data, target){
 			var log = self.$(".highlight > div > img").attr('data-contenturl');
 			var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
 			this.$('#modalIframe').attr('src', url);
-			this.$('#myModal').modal('show');			
+			this.$('#myModal').modal('show');
 		},
-		
+
 		getExternal: function() {
 			this.switchTo("external");
 		},
-		
+
 		//  This allows the end-user to add images or files hosted externally to be stored
 		//  inside of their library
 		// how should we determine if this is image or text?
