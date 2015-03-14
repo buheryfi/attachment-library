@@ -1,4 +1,4 @@
-<li class="imgbox clickable {{type}} ticket-result" data-html="true" data-content="Full URL: {{data_content}}" data-trigger="hover" data-placement="left" data-title="Title: {{data_title}}">
+<li class="imgbox clickable {{type}} more-info" data-html="true" data-content="Full URL: {{data_content}}" data-trigger="hover" data-placement="left" data-title="Title: {{data_title}}">
   <div style="position: relative; top: {{top}}px; left: {{left}}px;">
     <img src="{{src}}" width="{{width}}" height="{{height}}" alt="{{alt}}" data-contentURL="{{data_url}}"></img>
   </div>
