@@ -6,12 +6,32 @@
 		events: {
 			'app.activated':'initialize',
 			'click .btn':'toggleButtonGroup',
-			'click li.clickable':'add_colour', // add class to selected images
+			'click li.clickable':'add_colour', // add class to selected images            
+            		
+		// currently we can use the image element's attributes for display data, or
+		// we could make a request to the API with the attachment ID (which we don't currently store), or
+		// we could look at the bookmarks object/string that we store ont he user.  
+		// If we load it once and save it in app memory, then we could reference it from any other function
+		// currently, I have to pull the data again with show_details, but would be easier to reference 
+		// an object that is global?
+		
+		// Show details might work best if using the stored object separately,
+		// and on the Page tab it can reference the object created for the present ticket's attachments
+		
+		// This might also be better served by keeping an index in the objects, or id, and then simply grabbing the index on hover
+		// and populating the relevant variable for display.
+        // show more detailed information about a file when hovering over thumbnail
 
+            'mouseover .ticket-result': function(e) {
+              this.$(e.target).popover('show');  
+            },
+            
 			//working with images on page
 			'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
 			'click #add_images' : 'addToLibrary', // add selected images to library
 			'click #add_text' : 'addTextToLibrary',
+			
+			
 
 			//working with images inside of library
 			'click #get_library':'getLibrary', // switches template to library and show images from library
@@ -169,7 +189,9 @@
 					top: imageObject.top,
 					left: imageObject.left,
 					data_url: imageObject.data_url,
-					type: imageObject.type
+					type: imageObject.type,
+					data_title: imageObject.alt,
+					data_content: imageObject.data_url
 				});
 			}
 			this.switchTo("library", {imageList: imageList});
@@ -305,6 +327,7 @@
 				this.ajax('putField', bestData);
 			});
 		}
+
 	};
 
 }());
