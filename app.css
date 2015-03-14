@@ -57,6 +57,16 @@ img.clickable {
 	overflow: hidden;
 }
 
+.imgbox.text {
+	background-position: center;
+	background-image: app-asset-url("document.png");
+	background-size: 82px 82px;
+}
+
+.imgbox.text img {
+	display: none;
+}
+
 .document::after {
 }
 
