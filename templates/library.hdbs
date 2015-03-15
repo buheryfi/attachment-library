@@ -2,6 +2,7 @@
   <ul class="boxlist">
     {{{imageList}}}
   </ul>
+{{{pager}}}
 </div>
 <button class="hidden btn btn-large" id="embed_images">Add Image(s) to page as embedded image(s)</button></br>
 <button class="hidden btn btn-large" id="embed_link">Add Item(s) to page as link(s)</button></br>

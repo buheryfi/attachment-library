@@ -11,7 +11,3 @@
   <br>
 
 <section data-main/>
-<br/>
-<footer>
-  <span> Please contact <a href="mailto:{{author.email}}"> {{author.name}} </a> for assistance or suggestions</span>
-</footer>

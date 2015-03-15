@@ -86,3 +86,13 @@ img.clickable {
 #externalURL {
 	width: 300px;
 }
+
+.current {
+    border:.5px solid black;
+    color: blue;
+}
+
+button :disabled {
+    opacity: 0.5;
+    color: gray;
+}

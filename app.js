@@ -1,6 +1,8 @@
 //Need to buy icon for doc thumbnail or find a different free one - this one is not free and not licensed
 (function() {
     var self = this;
+    var current_page = 0;
+    var per_page = 9;
 
     return {
         events: {
@@ -24,6 +26,16 @@
 
             'mouseover .more-info': function(e) {
               this.$(e.target).popover('show');  
+            },
+            
+            // Navigate paginated content with Next, Previous, or Direct Page Link
+            'click .page_link': function(e) {
+                current_page = parseInt(this.$(e.target).val());
+                if (this.$('#get_library').hasClass('active')){
+                    this.renderLibrary(current_page);
+                } else if (this.$('#getImage').hasClass('active')) {
+                    this.getImages(current_page);
+                }
             },
             
             //working with images on page
@@ -81,10 +93,15 @@
             self.user_id = this.currentUser().id();
         },
 
-        getImages: function() {
+        getImages: function(current_image_page) {
             // load attachments from current page to allow interaction with them
+            if (typeof current_image_page !== "number"){
+                var current_image_page = 0;
+            }
+            
             var att = [];
             this.ticket().comments().forEach(function(comment){
+            // find all image and nonimage ticket attachments
                 comment.nonImageAttachments().forEach(function(nonImage){
                     var object = {};
                     object.url = nonImage.contentUrl();
@@ -100,16 +117,17 @@
                     att.push(object);
                 });
             // find inline images from ticket comments 
-                var str = comment.value();              
+                var str = comment.value();    
+                str = str.replace(/\s/g, '');          
                 var regex = str.match(/<img.+?src=[\"'](.+?)[\"'].*?>/gi);
-                if (regex !== null) { 
+                if (regex !== null) {
+                     
                     var url = regex[0].match(/src=[\"'](.+?)[\"']/gi);
-                    url = url[0].replace(/\s/g, '');
                     url = url.substring(5, url.length - 1);
                     
                     var alt = regex[0].match(/alt=[\"'](.+?)[\"']/gi);
+                    
                     if (alt !== null) {
-                        alt = alt[0].replace(/\s/g, '');
                         alt = alt.substring(5, alt.length - 1);
                     } else { alt = "No Name";}
                     var object = {};
@@ -120,48 +138,57 @@
                 }
             });
 
+
             if(att.length == 0) {
                 this.switchTo("get", {imageList: "<li class=\"imgbox\"><br>No Attachments Found</li>"});
                 return;
             }
             //  render attachments
+            var number_of_items = att.length-1;
+            var pager = this.paginate(att, current_image_page, number_of_items);
+               
             var attachment;
             var attachmentList = "";
-            for (var i = 0; i < att.length; i++){
-                if (att[i].type == "text"){
-                    attachmentList += this.renderTemplate("imgbox",
-                    {
-                        type: att[i].type,
-                        src: '',
-                        alt: att[i].name,
-                        height: 0,
-                        width: 0,
-                        top: 0,
-                        left: 0,
-                        data_url: att[i].url,
-                        data_title: att[i].name,
-                        data_content: att[i].url
-                    });
+            var end_of_list = per_page*(current_image_page+1);
+            var beg_of_list = per_page*current_image_page;
+            if (end_of_list > number_of_items) {end_of_list = number_of_items;}            
+            for (var i = beg_of_list; i < end_of_list; i++){
+                if (att[i] !== null){
+                    if (att[i].type == "text"){
+                        attachmentList += this.renderTemplate("imgbox",
+                        {
+                            type: att[i].type,
+                            src: '',
+                            alt: att[i].name,
+                            height: 0,
+                            width: 0,
+                            top: 0,
+                            left: 0,
+                            data_url: att[i].url,
+                            data_title: att[i].name,
+                            data_content: att[i].url
+                        });
+                    }
+                    else if (att[i].type == "image"){
+                        attachment = this.resizeImage(att[i].url);
+                        attachmentList += this.renderTemplate("imgbox",
+                        {
+                            type: att[i].type,
+                            src: att[i].url,
+                            alt: att[i].name,
+                            height: attachment.height,
+                            width: attachment.width,
+                            top: (82-attachment.height)/2,
+                            left: (82-attachment.width)/2,
+                            data_url: att[i].url,
+                            data_title: att[i].name,
+                            data_content: att[i].url
+                        });
+                    }
+                    else {return};
                 }
-                else if (att[i].type == "image"){
-                    attachment = this.resizeImage(att[i].url);
-                    attachmentList += this.renderTemplate("imgbox",
-                    {
-                        type: att[i].type,
-                        src: att[i].url,
-                        alt: att[i].name,
-                        height: attachment.height,
-                        width: attachment.width,
-                        top: (82-attachment.height)/2,
-                        left: (82-attachment.width)/2,
-                        data_url: att[i].url,
-                        data_title: att[i].name,
-                        data_content: att[i].url
-                    });
-                }
-                else {return};
             }
-            this.switchTo("get", {imageList: attachmentList});
+            this.switchTo("get", {imageList: attachmentList, pager: pager});
         },
 
         getLibrary: function() {
@@ -172,51 +199,97 @@
                 this.renderLibrary();
             });
         },
+        
+        paginate: function(array, current_page, number_of_items) {
 
-        renderLibrary: function() {
+            var number_of_pages = Math.ceil(number_of_items/per_page);
+            
+            if (current_page == 0) { 
+                var previous_page = 0;
+                var navigation_html = '<button type="button" class="page_link" disabled value="'+previous_page+'"><-</button>';
+            } else {
+                var previous_page = current_page - 1;
+                var navigation_html = '<button type="button" class="page_link" value="'+previous_page+'"><-</button>';
+            }
+            
+            for(i = 0; i < number_of_pages; i++){
+                if (i == current_page){
+                    navigation_html += '<button type="button" class="page_link current" value="'+i+'">' + (i + 1) +'</button>';
+                } else {
+                    navigation_html += '<button type="button" class="page_link" value="'+i+'">' + (i + 1) +'</button>';
+                }
+            }  
+            
+            if (current_page+1 >= number_of_pages) { 
+                var next_page = number_of_pages;
+                navigation_html += '<button type="button" class="page_link" disabled value="'+next_page+'">-></button>';
+            } else {
+                var next_page = current_page + 1;
+                navigation_html += '<button type="button" class="page_link" value="'+next_page+'">-></button>';
+            }
+            
+            var pager = this.renderTemplate('pager', {
+                page_navigation: navigation_html
+            });
+            
+            return pager;                                  
+        },
+        
+        renderLibrary: function(current_page = 0) {
             if(self.library == null) {
                 this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
                 return;
             }
+
             var res = self.library.split(";");
+            var number_of_items = res.length-1;
+            var pager = this.paginate(res, current_page, number_of_items);
+            
             var img;
             var imageList = "";
-            for (var i = 0; i < res.length-1; i++){
-                var attachment = res[i].split(",");
-                var imageObject = {};
-                if (attachment[2] == "image"){
-                    imageObject = this.resizeImage(attachment[0]);
-                    imageObject.alt = attachment[1];
-                    imageObject.data_url = attachment[0];
-                    imageObject.top = (82-imageObject.height)/2;
-                    imageObject.left = (82-imageObject.width)/2;
-                    imageObject.type = "image";
-                } else if (attachment[2] == "text") {
-                    imageObject = new Image();
-                    imageObject.src = '';
-                    imageObject.height = 0;
-                    imageObject.width = 0;
-                    imageObject.alt = attachment[1];
-                    imageObject.data_url = attachment[0];
-                    imageObject.top = 0;
-                    imageObject.left = 0;
-                    imageObject.type = "text";
-                }
-                imageList += this.renderTemplate("imgbox",
-                {
-                    alt: imageObject.alt,
-                    src: imageObject.src,
-                    height: imageObject.height,
-                    width: imageObject.width,
-                    top: imageObject.top,
-                    left: imageObject.left,
-                    data_url: imageObject.data_url,
-                    type: imageObject.type,
-                    data_title: imageObject.alt,
-                    data_content: imageObject.data_url
-                });
+            var end_of_list = per_page*(current_page+1);
+            var beg_of_list = per_page*current_page;
+            if (end_of_list > number_of_items) {end_of_list = number_of_items;}
+            
+            for (var i = beg_of_list; i < end_of_list; i++){
+                if (res[i] !== null){
+                    var attachment = res[i].split(",");
+                    var imageObject = {};
+                    if (attachment[2] == "image"){
+                        imageObject = this.resizeImage(attachment[0]);
+                        imageObject.alt = attachment[1];
+                        imageObject.data_url = attachment[0];
+                        imageObject.top = (82-imageObject.height)/2;
+                        imageObject.left = (82-imageObject.width)/2;
+                        imageObject.type = "image";
+                    } else if (attachment[2] == "text") {
+                        imageObject = new Image();
+                        imageObject.src = '';
+                        imageObject.height = 0;
+                        imageObject.width = 0;
+                        imageObject.alt = attachment[1];
+                        imageObject.data_url = attachment[0];
+                        imageObject.top = 0;
+                        imageObject.left = 0;
+                        imageObject.type = "text";
+                    }
+                    imageList += this.renderTemplate("imgbox",
+                    {
+                        alt: imageObject.alt,
+                        src: imageObject.src,
+                        height: imageObject.height,
+                        width: imageObject.width,
+                        top: imageObject.top,
+                        left: imageObject.left,
+                        data_url: imageObject.data_url,
+                        type: imageObject.type,
+                        data_title: imageObject.alt,
+                        data_content: imageObject.data_url
+                    });    
+                };
+                
             }
-            this.switchTo("library", {imageList: imageList});
+            this.switchTo("library", {imageList: imageList, pager: pager});
         },
 
         resizeImage: function(object) {
@@ -243,9 +316,7 @@
             }
         },
 
-        // this function handles the currently selected item by toggling classes
-        // and also detects how many items selected, and disables
-        // the preview button should more than one item be selected.
+        // Toggle Class for Selected Item - Disable Preview Button if Multiple Items Selected
         add_colour: function(event) {
             if(this.$(event.target).prop('tagName') == "IMG") {
                 this.$(event.target).parent().parent().toggleClass("highlight");
@@ -256,7 +327,7 @@
             }
             var numItems = this.$(".highlight").length;
             if ( numItems > 1) {this.$("#preview_item").prop("disabled", true); }
-            else if ( numItems <= 1) {this.$("#preview_item").prop("disabled", false);}
+            else if ( numItems <= 1) {this.$("#preview_item").prop("disabled", false); }
             this.$(".hidden").removeClass("hidden");
         },
 
