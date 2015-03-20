@@ -298,10 +298,13 @@
 		addExternalToLibrary: function() {
 			var fileLocation = this.$("externalURL").val()+',';
 			var fileName = this.$("#externalFileName").val()+',';
+			//NEED TO CHECK FOR TYPE HERE!
+			//  Possibly a user check-box?
+			//  Possibly a list of image filetypes?
 			var value = this.ajax('getField').done(function(data) {
 				var value = data.user.user_fields[this.settings['field_key']];
-				if (value !== null) {var bestData = value+this.$("#externalURL").val()+';';}
-				else {var bestData = this.$("#externalURL").val();}
+				if (value !== null) {var bestData = value+this.$("#externalURL").val()+';';} //need to add name/type
+				else {var bestData = this.$("#externalURL").val();} //also here
 				this.ajax('putField', bestData);
 			});
 		}
