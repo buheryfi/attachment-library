@@ -83,7 +83,7 @@ img.clickable {
 	width: 700px;
 }
 
-#externalURL {
+#externalURL, #externalFileName {
 	width: 300px;
 }
 
