@@ -411,16 +411,18 @@
         // should we restrict which types of extensions can be added?
         // what is to stop him from uploading other types of files? OK?
         addExternalToLibrary: function() {
-            var fileLocation = this.$("externalURL").val()+',';
-            var fileName = this.$("#externalFileName").val()+',';
-            //NEED TO CHECK FOR TYPE HERE!
-            //  Possibly a user check-box?
-            //  Possibly a list of image filetypes?
-            var value = this.ajax('getField').done(function(data) {
-                var value = data.user.user_fields[this.settings['field_key']];
-                if (value !== null) {var bestData = value+this.$("#externalURL").val()+';';} //need to add name/type
-                else {var bestData = this.$("#externalURL").val();} //also here
-                this.ajax('putField', bestData);
+            var fileLocation = this.$("#externalURL").val(),
+                fileName = this.$("#externalFileName").val(),
+                attachmentType = this.$(".type-btn.active").data("type");
+            //probably want to validate input here?
+            //make sure the image url uses https
+            //dunno about file name
+            //growl on bad input and highlight field?
+            var toAdd = [fileLocation,fileName,attachmentType].join(',')+';';
+            this.ajax('getField').done(function(data) {
+                var newValue, value = data.user.user_fields[this.settings['field_key']];
+                newValue = value ? value + toAdd : toAdd;
+                this.ajax('putField', newValue);
             });
         }
 
