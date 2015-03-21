@@ -31,6 +31,10 @@ img.clickable {
   width: 50%;
 }
 
+.type-btn {
+	width: 20%;
+}
+
 .imgframe {
 	width: 100%;
 }
