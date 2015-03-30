@@ -1,15 +1,14 @@
-<h4>Images on this Page</h4>
 <div class="imgframe" id="insert_stuff">
   <ul class="boxlist">
     {{{imageList}}}
   </ul>
 </div>
+{{{pager}}}
 <button class="hidden btn btn-large" id="add_images">Add Item(s) to Library</button></br>
 <button class="hidden btn btn-large" id="preview_item">Preview Item (only one may be selected)</button></br>
 <button class="hidden btn btn-large" id="embed_images">Add Image(s) to page as embedded image(s)</button></br>
 <button class="hidden btn btn-large" id="embed_link">Add Item(s) to page as link(s)</button></br>
 
-{{modal}}
 <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
