@@ -3,31 +3,38 @@
     var self = this;
     var current_page = 0;
     var per_page = 9;
+  	var ERRORS = {
+  		ext: [
+  			"Please provide a valid URL (must include 'https').",
+  			"Please provide a nickname for the file.",
+  			"Please select the type of file to import."
+  		]
+  	};
 
     return {
         events: {
             'app.activated':'initialize',
             'click .btn':'toggleButtonGroup',
-            'click li.clickable':'add_colour', // add class to selected images            
-                    
+            'click li.clickable':'add_colour', // add class to selected images
+
         // currently we can use the image element's attributes for display data, or
         // we could make a request to the API with the attachment ID (which we don't currently store), or
-        // we could look at the bookmarks object/string that we store ont he user.  
+        // we could look at the bookmarks object/string that we store ont he user.
         // If we load it once and save it in app memory, then we could reference it from any other function
-        // currently, I have to pull the data again with show_details, but would be easier to reference 
+        // currently, I have to pull the data again with show_details, but would be easier to reference
         // an object that is global?
-        
+
         // Show details might work best if using the stored object separately,
         // and on the Page tab it can reference the object created for the present ticket's attachments
-        
+
         // This might also be better served by keeping an index in the objects, or id, and then simply grabbing the index on hover
         // and populating the relevant variable for display.
         // show more detailed information about a file when hovering over thumbnail
 
             'mouseover .more-info': function(e) {
-              this.$(e.target).popover('show');  
+              this.$(e.target).popover('show');
             },
-            
+
             // Navigate paginated content with Next, Previous, or Direct Page Link
             'click .page_link': function(e) {
                 current_page = parseInt(this.$(e.target).val());
@@ -37,7 +44,7 @@
                     this.getImages(current_page);
                 }
             },
-            
+
             //working with images on page
             'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
             'click #add_images' : 'addToLibrary', // add selected images to library
@@ -53,6 +60,8 @@
             // working with Remote Content
             'click #getExternal': 'getExternal',
             'click #addExternal': 'addExternalToLibrary',
+
+            'focus .field-error': 'removeFieldError',
 
             // Growler notifications for external requests
             'putField.done': function() {
@@ -98,7 +107,7 @@
             if (typeof current_image_page !== "number"){
                 var current_image_page = 0;
             }
-            
+
             var att = [];
             this.ticket().comments().forEach(function(comment){
             // find all image and nonimage ticket attachments
@@ -116,17 +125,17 @@
                     object.type = "image";
                     att.push(object);
                 });
-            // find inline images from ticket comments 
-                var str = comment.value();    
-                str = str.replace(/\s/g, '');          
+            // find inline images from ticket comments
+                var str = comment.value();
+                str = str.replace(/\s/g, '');
                 var regex = str.match(/<img.+?src=[\"'](.+?)[\"'].*?>/gi);
                 if (regex !== null) {
-                     
+
                     var url = regex[0].match(/src=[\"'](.+?)[\"']/gi);
                     url = url.substring(5, url.length - 1);
-                    
+
                     var alt = regex[0].match(/alt=[\"'](.+?)[\"']/gi);
-                    
+
                     if (alt !== null) {
                         alt = alt.substring(5, alt.length - 1);
                     } else { alt = "No Name";}
@@ -146,12 +155,12 @@
             //  render attachments
             var number_of_items = att.length-1;
             var pager = this.paginate(att, current_image_page, number_of_items);
-               
+
             var attachment;
             var attachmentList = "";
             var end_of_list = per_page*(current_image_page+1);
             var beg_of_list = per_page*current_image_page;
-            if (end_of_list > number_of_items) {end_of_list = number_of_items;}            
+            if (end_of_list > number_of_items) {end_of_list = number_of_items;}
             for (var i = beg_of_list; i < end_of_list; i++){
                 if (att[i] !== null){
                     if (att[i].type == "text"){
@@ -199,42 +208,42 @@
                 this.renderLibrary();
             });
         },
-        
+
         paginate: function(array, current_page, number_of_items) {
 
             var number_of_pages = Math.ceil(number_of_items/per_page);
-            
-            if (current_page == 0) { 
+
+            if (current_page == 0) {
                 var previous_page = 0;
                 var navigation_html = '<button type="button" class="page_link" disabled value="'+previous_page+'"><-</button>';
             } else {
                 var previous_page = current_page - 1;
                 var navigation_html = '<button type="button" class="page_link" value="'+previous_page+'"><-</button>';
             }
-            
+
             for(i = 0; i < number_of_pages; i++){
                 if (i == current_page){
                     navigation_html += '<button type="button" class="page_link current" value="'+i+'">' + (i + 1) +'</button>';
                 } else {
                     navigation_html += '<button type="button" class="page_link" value="'+i+'">' + (i + 1) +'</button>';
                 }
-            }  
-            
-            if (current_page+1 >= number_of_pages) { 
+            }
+
+            if (current_page+1 >= number_of_pages) {
                 var next_page = number_of_pages;
                 navigation_html += '<button type="button" class="page_link" disabled value="'+next_page+'">-></button>';
             } else {
                 var next_page = current_page + 1;
                 navigation_html += '<button type="button" class="page_link" value="'+next_page+'">-></button>';
             }
-            
+
             var pager = this.renderTemplate('pager', {
                 page_navigation: navigation_html
             });
-            
-            return pager;                                  
+
+            return pager;
         },
-        
+
         renderLibrary: function(current_page = 0) {
             if(self.library == null) {
                 this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
@@ -244,13 +253,13 @@
             var res = self.library.split(";");
             var number_of_items = res.length-1;
             var pager = this.paginate(res, current_page, number_of_items);
-            
+
             var img;
             var imageList = "";
             var end_of_list = per_page*(current_page+1);
             var beg_of_list = per_page*current_page;
             if (end_of_list > number_of_items) {end_of_list = number_of_items;}
-            
+
             for (var i = beg_of_list; i < end_of_list; i++){
                 if (res[i] !== null){
                     var attachment = res[i].split(",");
@@ -285,9 +294,9 @@
                         type: imageObject.type,
                         data_title: imageObject.alt,
                         data_content: imageObject.data_url
-                    });    
+                    });
                 };
-                
+
             }
             this.switchTo("library", {imageList: imageList, pager: pager});
         },
@@ -411,14 +420,34 @@
         // should we restrict which types of extensions can be added?
         // what is to stop him from uploading other types of files? OK?
         addExternalToLibrary: function() {
-            var fileLocation = this.$("externalURL").val()+',';
-            var fileName = this.$("#externalFileName").val()+',';
-            var value = this.ajax('getField').done(function(data) {
-                var value = data.user.user_fields[this.settings['field_key']];
-                if (value !== null) {var bestData = value+this.$("#externalURL").val()+';';}
-                else {var bestData = this.$("#externalURL").val();}
-                this.ajax('putField', bestData);
+            var fields, values, errout = false;
+            fields = [this.$("#externalURL"), this.$("#externalFileName"), this.$(".type-btn.active")];
+            values = [fields[0].val(), fields[1].val().replace(/[,;]/g,""), fields[2].data("type")];
+            values.map(function(d,i){
+                if(!d) {
+                    fields[i].addClass("field-error");
+                    services.notify(ERRORS.ext[i], 'error');
+                    errout |= true;
+                } else if(i == 0 && d.indexOf("https://") != 0) {
+                    fields[i].addClass("field-error");
+                    services.notify(ERRORS.ext[i], 'error');
+                    errout |= true;
+                }
             });
+            if(errout) return;
+            fields.forEach(function(d) {
+                this.$(d).val("");
+            });
+            var toAdd = values.join(',')+';';
+            this.ajax('getField').done(function(data) {
+                var newValue, value = data.user.user_fields[this.settings['field_key']];
+                newValue = value ? value + toAdd : toAdd;
+                this.ajax('putField', newValue);
+            });
+        },
+
+        removeFieldError: function(e) {
+            this.$(e.target).removeClass("field-error");
         }
 
     };
