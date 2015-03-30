@@ -1,6 +1,13 @@
 //Need to buy icon for doc thumbnail or find a different free one - this one is not free and not licensed
 (function() {
 	var self = this;
+	var ERRORS = {
+		ext: [
+			"Please provide a valid URL (must include 'https').",
+			"Please provide a nickname for the file.",
+			"Please select the type of file to import."
+		]
+	};
 
 	return {
 		events: {
@@ -23,6 +30,8 @@
 			// working with Remote Content
 			'click #getExternal': 'getExternal',
 			'click #addExternal': 'addExternalToLibrary',
+
+			'focus .field-error': 'removeFieldError',
 
 			// Growler notifications for external requests
 			'putField.done': function() {
@@ -296,19 +305,34 @@
 		// should we restrict which types of extensions can be added?
 		// what is to stop him from uploading other types of files? OK?
 		addExternalToLibrary: function() {
-			var fileLocation = this.$("#externalURL").val(),
-			    fileName = this.$("#externalFileName").val(),
-			    attachmentType = this.$(".type-btn.active").data("type");
-			//probably want to validate input here?
-			//make sure the image url uses https
-			//dunno about file name
-			//growl on bad input and highlight field?
-			var toAdd = [fileLocation,fileName,attachmentType].join(',')+';';
+			var fields, values, errout = false;
+			fields = [this.$("#externalURL"), this.$("#externalFileName"), this.$(".type-btn.active")];
+			values = [fields[0].val(), fields[1].val().replace(/[,;]/g,""), fields[2].data("type")];
+			values.map(function(d,i){
+				if(!d) {
+					fields[i].addClass("field-error");
+					services.notify(ERRORS.ext[i], 'error');
+					errout |= true;
+				} else if(i == 0 && d.indexOf("https://") != 0) {
+					fields[i].addClass("field-error");
+					services.notify(ERRORS.ext[i], 'error');
+					errout |= true;
+				}
+			});
+			if(errout) return;
+			fields.forEach(function(d) {
+				this.$(d).val("");
+			});
+			var toAdd = values.join(',')+';';
 			this.ajax('getField').done(function(data) {
 				var newValue, value = data.user.user_fields[this.settings['field_key']];
 				newValue = value ? value + toAdd : toAdd;
 				this.ajax('putField', newValue);
 			});
+		},
+
+		removeFieldError: function(e) {
+			this.$(e.target).removeClass("field-error");
 		}
 	};
 
