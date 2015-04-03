@@ -8,13 +8,13 @@
         events: {
             'app.activated':'initialize',
             'click .btn':'toggleButtonGroup',
-            'click li.clickable':'add_colour', // add class to selected images            
-                    
+            'click li.clickable':'add_colour', // add class to selected images
+
         // currently we can use the image element's attributes for display data, or
         // we could make a request to the API with the attachment ID (which we don't currently store), or
-        // we could look at the bookmarks object/string that we store ont he user.  
+        // we could look at the bookmarks object/string that we store ont he user.
         // If we load it once and save it in app memory, then we could reference it from any other function
-        // currently, I have to pull the data again with show_details, but would be easier to reference 
+        // currently, I have to pull the data again with show_details, but would be easier to reference
         // an object that is global?
         
         // Show details might work best if using the stored object separately,
@@ -25,7 +25,7 @@
         // show more detailed information about a file when hovering over thumbnail
 
             'mouseover .more-info': function(e) {
-              this.$(e.target).popover('show');  
+              this.$(e.target).popover('show');
             },
             
             // Navigate paginated content with Next, Previous, or Direct Page Link
@@ -116,12 +116,12 @@
                     object.type = "image";
                     att.push(object);
                 });
-            // find inline images from ticket comments 
-                var str = comment.value();    
-                str = str.replace(/\s/g, '');          
+            // find inline images from ticket comments
+                var str = comment.value();
+                str = str.replace(/\s/g, '');
                 var regex = str.match(/<img.+?src=[\"'](.+?)[\"'].*?>/gi);
                 if (regex !== null) {
-                     
+                    
                     var url = regex[0].match(/src=[\"'](.+?)[\"']/gi);
                     url = url.substring(5, url.length - 1);
                     
@@ -144,14 +144,14 @@
                 return;
             }
             //  render attachments
-            var number_of_items = att.length-1;
+            var number_of_items = att.length;
             var pager = this.paginate(att, current_image_page, number_of_items);
-               
+            
             var attachment;
             var attachmentList = "";
             var end_of_list = per_page*(current_image_page+1);
             var beg_of_list = per_page*current_image_page;
-            if (end_of_list > number_of_items) {end_of_list = number_of_items;}            
+            if (end_of_list > number_of_items) {end_of_list = number_of_items;}
             for (var i = beg_of_list; i < end_of_list; i++){
                 if (att[i] !== null){
                     if (att[i].type == "text"){
@@ -196,7 +196,7 @@
             // load data from user field and render thumbnails
             this.ajax('getField').done(function(data) {
                 self.library = data.user.user_fields[this.settings['field_key']];
-                this.renderLibrary();
+                this.renderLibrary(0);
             });
         },
         
@@ -204,7 +204,7 @@
 
             var number_of_pages = Math.ceil(number_of_items/per_page);
             
-            if (current_page == 0) { 
+            if (current_page == 0) {
                 var previous_page = 0;
                 var navigation_html = '<button type="button" class="page_link" disabled value="'+previous_page+'"><-</button>';
             } else {
@@ -218,9 +218,9 @@
                 } else {
                     navigation_html += '<button type="button" class="page_link" value="'+i+'">' + (i + 1) +'</button>';
                 }
-            }  
+            }
             
-            if (current_page+1 >= number_of_pages) { 
+            if (current_page+1 >= number_of_pages) {
                 var next_page = number_of_pages;
                 navigation_html += '<button type="button" class="page_link" disabled value="'+next_page+'">-></button>';
             } else {
@@ -232,10 +232,10 @@
                 page_navigation: navigation_html
             });
             
-            return pager;                                  
+            return pager;
         },
         
-        renderLibrary: function(current_page = 0) {
+        renderLibrary: function(current_page) {
             if(self.library == null) {
                 this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
                 return;
@@ -285,7 +285,7 @@
                         type: imageObject.type,
                         data_title: imageObject.alt,
                         data_content: imageObject.data_url
-                    });    
+                    });
                 };
                 
             }
