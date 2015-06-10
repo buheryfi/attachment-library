@@ -1,8 +1,13 @@
-//Need to buy icon for doc thumbnail or find a different free one - this one is not free and not licensed
 (function() {
     var self = this;
     var current_page = 0;
+    var previous_page;
     var per_page = 9;
+    var bestData;
+    var navigation_html;
+    var put_data;
+    var current_text;
+    /*global Image:true*/
 
     return {
         events: {
@@ -30,13 +35,14 @@
             
             // Navigate paginated content with Next, Previous, or Direct Page Link
             'click .page_link': function(e) {
-                current_page = parseInt(this.$(e.target).val());
+                current_page = parseInt(this.$(e.target).val(), 10);
                 if (this.$('#get_library').hasClass('active')){
                     this.renderLibrary(current_page);
                 } else if (this.$('#getImage').hasClass('active')) {
                     this.getImages(current_page);
                 }
             },
+            
             
             //working with images on page
             'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
@@ -61,7 +67,7 @@
             'putField.fail': function() {
                 services.notify('Item(s) could not be added.  Contact your administrator.');
             }
-
+            
         },
 
 
@@ -72,11 +78,11 @@
 
             putField: function(data) {
                 return {
-                    url: '/api/v2/users/'+user_id+'.json',
+                    url: '/api/v2/users/'+self.user_id+'.json',
                     type: 'PUT',
                     dataType: 'json',
                     contentType: 'application/json; charset=UTF-8',
-                    data: '{"user": {"user_fields":{"'+this.settings['field_key']+'":"'+data+'"}}}',
+                    data: '{"user": {"user_fields":{"'+this.settings.field_key+'":"'+data+'"}}}',
                 };
             },
 
@@ -96,7 +102,7 @@
         getImages: function(current_image_page) {
             // load attachments from current page to allow interaction with them
             if (typeof current_image_page !== "number"){
-                var current_image_page = 0;
+                current_image_page = 0;
             }
             
             var att = [];
@@ -139,7 +145,7 @@
             });
 
 
-            if(att.length == 0) {
+            if(att.length === 0) {
                 this.switchTo("get", {imageList: "<li class=\"imgbox\"><br>No Attachments Found</li>"});
                 return;
             }
@@ -185,7 +191,7 @@
                             data_content: att[i].url
                         });
                     }
-                    else {return};
+                    else {return;}
                 }
             }
             this.switchTo("get", {imageList: attachmentList, pager: pager});
@@ -195,7 +201,7 @@
             // load library page template
             // load data from user field and render thumbnails
             this.ajax('getField').done(function(data) {
-                self.library = data.user.user_fields[this.settings['field_key']];
+                self.library = data.user.user_fields[this.settings.field_key];
                 this.renderLibrary();
             });
         },
@@ -204,15 +210,15 @@
 
             var number_of_pages = Math.ceil(number_of_items/per_page);
             
-            if (current_page == 0) { 
-                var previous_page = 0;
-                var navigation_html = '<button type="button" class="page_link" disabled value="'+previous_page+'"><-</button>';
+            if (current_page === 0) { 
+                previous_page = 0;
+                navigation_html = '<button type="button" class="page_link" disabled value="'+previous_page+'"><-</button>';
             } else {
-                var previous_page = current_page - 1;
-                var navigation_html = '<button type="button" class="page_link" value="'+previous_page+'"><-</button>';
+                previous_page = current_page - 1;
+                navigation_html = '<button type="button" class="page_link" value="'+previous_page+'"><-</button>';
             }
             
-            for(i = 0; i < number_of_pages; i++){
+            for(var i = 0; i < number_of_pages; i++){
                 if (i == current_page){
                     navigation_html += '<button type="button" class="page_link current" value="'+i+'">' + (i + 1) +'</button>';
                 } else {
@@ -221,7 +227,7 @@
             }  
             
             if (current_page+1 >= number_of_pages) { 
-                var next_page = number_of_pages;
+                next_page = number_of_pages;
                 navigation_html += '<button type="button" class="page_link" disabled value="'+next_page+'">-></button>';
             } else {
                 var next_page = current_page + 1;
@@ -235,7 +241,8 @@
             return pager;                                  
         },
         
-        renderLibrary: function(current_page = 0) {
+        renderLibrary: function(current_page) {
+            current_page = current_page || 0;
             if(self.library == null) {
                 this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
                 return;
@@ -286,7 +293,7 @@
                         data_title: imageObject.alt,
                         data_content: imageObject.data_url
                     });    
-                };
+                }
                 
             }
             this.switchTo("library", {imageList: imageList, pager: pager});
@@ -349,9 +356,9 @@
                         put_data += "text;";
                     }
                 });
-                var value = data.user.user_fields[this.settings['field_key']];
-                if (value !== null) {var bestData = value+put_data;}
-                else {var bestData = put_data;}
+                var value = data.user.user_fields[this.settings.field_key];
+                if (value !== null) { bestData = value+put_data;}
+                else { bestData = put_data;}
                 this.ajax('putField', bestData);
             });
         },
@@ -366,7 +373,7 @@
                 self.library = self.library.replace(string, '');
             });
             this.ajax('putField', self.library).done(function(data) {
-                self.library = data.user.user_fields[this.settings['field_key']];
+                self.library = data.user.user_fields[this.settings.field_key];
                 this.renderLibrary();
             });
         },
@@ -394,8 +401,13 @@
 
         // show preview of selected Text File using Google Docs API in a modal Iframe
         previewItem: function(data, target){
-            var log = self.$(".highlight > div > img").attr('data-contenturl');
-            var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
+            //if image, use modal to show item, if doc, use google API
+            if (self.$(".highlight").hasClass('image')) {
+                var url = self.$(".highlight > div > img").attr('data-contenturl');
+            } else if (self.$(".highlight").hasClass('text')) {
+                var log = self.$(".highlight > div > img").attr('data-contenturl');
+                var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
+            }
             this.$('#modalIframe').attr('src', url);
             this.$('#myModal').modal('show');
         },
@@ -414,9 +426,9 @@
             var fileLocation = this.$("externalURL").val()+',';
             var fileName = this.$("#externalFileName").val()+',';
             var value = this.ajax('getField').done(function(data) {
-                var value = data.user.user_fields[this.settings['field_key']];
-                if (value !== null) {var bestData = value+this.$("#externalURL").val()+';';}
-                else {var bestData = this.$("#externalURL").val();}
+                var value = data.user.user_fields[this.settings.field_key];
+                if (value !== null) { bestData = value+this.$("#externalURL").val()+';';}
+                else { bestData = this.$("#externalURL").val();}
                 this.ajax('putField', bestData);
             });
         }
