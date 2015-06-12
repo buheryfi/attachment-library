@@ -7,6 +7,7 @@
     var navigation_html;
     var put_data;
     var current_text;
+    var ratio;
     /*global Image:true*/
 
     return {
@@ -43,7 +44,6 @@
                 }
             },
             
-            
             //working with images on page
             'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
             'click #add_images' : 'addToLibrary', // add selected images to library
@@ -67,9 +67,7 @@
             'putField.fail': function() {
                 services.notify('Item(s) could not be added.  Contact your administrator.');
             }
-            
         },
-
 
         resources: {
         },
@@ -101,11 +99,14 @@
 
         getImages: function(current_image_page) {
             // load attachments from current page to allow interaction with them
+            var att = [];
+
+
+            // some thumbnails do not load on first page load, only on next page load. Why is that?
             if (typeof current_image_page !== "number"){
                 current_image_page = 0;
             }
             
-            var att = [];
             this.ticket().comments().forEach(function(comment){
             // find all image and nonimage ticket attachments
                 comment.nonImageAttachments().forEach(function(nonImage){
@@ -126,16 +127,16 @@
                 var str = comment.value();
                 str = str.replace(/\s/g, '');
                 var regex = str.match(/<img.+?src=[\"'](.+?)[\"'].*?>/gi);
-                if (regex !== null) {
-                    
+                if (regex !== null) {                    
                     var url = regex[0].match(/src=[\"'](.+?)[\"']/gi);
-                    url = url.substring(5, url.length - 1);
-                    
+                    url = url.substring(5, url.length - 1);     
                     var alt = regex[0].match(/alt=[\"'](.+?)[\"']/gi);
                     
                     if (alt !== null) {
                         alt = alt.substring(5, alt.length - 1);
-                    } else { alt = "No Name";}
+                    } else { 
+                        alt = "No Name";
+                    }
                     var object = {};
                     object.url = url;
                     object.name = alt;
@@ -143,12 +144,13 @@
                     att.push(object);
                 }
             });
-
-
+            
+            // if no images, show no images and break.
             if(att.length === 0) {
                 this.switchTo("get", {imageList: "<li class=\"imgbox\"><br>No Attachments Found</li>"});
                 return;
             }
+
             //  render attachments
             var number_of_items = att.length;
             var pager = this.paginate(att, current_image_page, number_of_items);
@@ -157,7 +159,9 @@
             var attachmentList = "";
             var end_of_list = per_page*(current_image_page+1);
             var beg_of_list = per_page*current_image_page;
-            if (end_of_list > number_of_items) {end_of_list = number_of_items;}
+            if (end_of_list > number_of_items) {
+                end_of_list = number_of_items;
+            }
             for (var i = beg_of_list; i < end_of_list; i++){
                 if (att[i] !== null){
                     if (att[i].type == "text"){
@@ -174,9 +178,9 @@
                             data_title: att[i].name,
                             data_content: att[i].url
                         });
-                    }
-                    else if (att[i].type == "image"){
+                    } else if (att[i].type == "image"){
                         attachment = this.resizeImage(att[i].url);
+                        console.log(attachment);
                         attachmentList += this.renderTemplate("imgbox",
                         {
                             type: att[i].type,
@@ -300,17 +304,17 @@
         },
 
         resizeImage: function(object) {
-            var img = new Image();
+            var img = new Image(82, 82);
             img.src = object;
-            var ratio;
-            if(img.width > img.height) {
-                ratio = 82/img.width;
-            } else {
-                ratio = 82/img.height;
-            }
-            img.height *= ratio;
-            img.width *= ratio;
-            return img;
+
+                /*if(img.width > img.height) {
+                    ratio = 82/img.width;
+                } else {
+                    ratio = 82/img.height;
+                }
+                img.height *= ratio;
+                img.width *= ratio;*/
+                return img;            
         },
 
         toggleButtonGroup: function(event) {
@@ -402,6 +406,7 @@
         // show preview of selected Text File using Google Docs API in a modal Iframe
         previewItem: function(data, target){
             //if image, use modal to show item, if doc, use google API
+            // need to get this centered and change title for images to image preview rather than doc preview
             if (self.$(".highlight").hasClass('image')) {
                 var url = self.$(".highlight > div > img").attr('data-contenturl');
             } else if (self.$(".highlight").hasClass('text')) {
