@@ -411,11 +411,12 @@
         previewItem: function(data, target){
             //if image, use modal to show item, if doc, use google API
             // need to get this centered and change title for images to image preview rather than doc preview
+            var url;
             if (self.$(".highlight").hasClass('image')) {
-                var url = self.$(".highlight > div > img").attr('data-contenturl');
+                url = self.$(".highlight > div > img").attr('data-contenturl');
             } else if (self.$(".highlight").hasClass('text')) {
                 var log = self.$(".highlight > div > img").attr('data-contenturl');
-                var url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
+                url = "http://docs.google.com/viewer?url="+log+"&embedded=true";
             }
             this.$('#modalIframe').attr('src', url);
             this.$('#myModal').modal('show');
