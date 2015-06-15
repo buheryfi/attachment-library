@@ -252,6 +252,7 @@
         
         renderLibrary: function(current_page) {
             current_page = current_page || 0;
+
             if(self.library == null) {
                 this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
                 return;
