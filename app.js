@@ -3,13 +3,8 @@
     var current_page = 0;
     var previous_page;
     var per_page = 9;
-    var ERRORS = {
-      ext: [
-        "Please provide a valid URL (must include 'https').",
-        "Please provide a nickname for the file.",
-        "Please select the type of file to import."
-      ]
-    };
+    var next_page;
+
     var bestData;
     var navigation_html;
     var put_data;
@@ -69,10 +64,10 @@
 
             // Growler notifications for external requests
             'putField.done': function() {
-                services.notify('Item(s) Successfully Added.');
+                services.notify(this.I18n.t('add.done'));
             },
             'putField.fail': function() {
-                services.notify('Item(s) could not be added.  Contact your administrator.');
+                services.notify(this.I18n.t('add.fail'));
             }
         },
 
@@ -141,7 +136,7 @@
                     if (alt !== null) {
                         alt = alt.substring(5, alt.length - 1);
                     } else { 
-                        alt = "No Name";
+                        alt = this.I18n.t('alt');
                     }
                     var object = {};
                     object.url = url;
@@ -153,7 +148,7 @@
             
             // if no images, show no images and break.
             if(att.length === 0) {
-                this.switchTo("get", {imageList: "<li class=\"imgbox\"><br>No Attachments Found</li>"});
+                this.switchTo("ticket", {imageList: "<li class=\"imgbox\"><br>"+this.I18n.t('errors.ticket_empty')+"</li>"});
                 return;
             }
 
@@ -204,7 +199,7 @@
                     else {return;}
                 }
             }
-            this.switchTo("get", {imageList: attachmentList, pager: pager});
+            this.switchTo("ticket", {imageList: attachmentList, pager: pager});
         },
 
         getLibrary: function() {
@@ -254,7 +249,7 @@
             current_page = current_page || 0;
 
             if(self.library == null) {
-                this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>Nothing Here Yet!</li>"});
+                this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>"+this.I18n.t('errors.library_empty')+"</li>"});
                 return;
             }
 
@@ -311,7 +306,7 @@
         resizeImage: function(object) {
             var img = new Image(82, 82);
             img.src = object;
-
+                // this is for resizing and maintaining aspect ratio - currently it works, but sometimes it fires after the image is added, resulting in a blank.  Need to make it populate before the image is added to the page...
                 /*if(img.width > img.height) {
                     ratio = 82/img.width;
                 } else {
@@ -391,7 +386,7 @@
         embedImages: function(data){
             put_data = '';
             self.$(".highlight").each(function(i, val) {
-                put_data += "![Image from Markdown]("+val.children[0].children[0].getAttribute("src")+") " + "\n";
+                put_data += "!["+this.I18n.t('markdown')+"]("+val.children[0].children[0].getAttribute("src")+") " + "\n";
             });
             current_text = this.comment().text();
             current_text += put_data;
@@ -430,6 +425,13 @@
         //  This allows the end-user to add images or files hosted externally to be stored
         //  inside of their library
         addExternalToLibrary: function() {
+            var ERRORS = {
+              ext: [
+                this.I18n.t('errors.url'),
+                this.I18n.t('errors.nickname'),
+                this.I18n.t('errors.type')
+              ]
+            };
             var fields, values, errout = false;
             fields = [this.$("#externalURL"), this.$("#externalFileName"), this.$(".type-btn.active")];
             values = [fields[0].val(), fields[1].val().replace(/[,;]/g,""), fields[2].data("type")];
@@ -438,7 +440,7 @@
                     fields[i].addClass("field-error");
                     services.notify(ERRORS.ext[i], 'error');
                     errout |= true;
-                } else if(i == 0 && d.indexOf("https://") != 0) {
+                } else if(i === 0 && d.indexOf("https://") !== 0) {
                     fields[i].addClass("field-error");
                     services.notify(ERRORS.ext[i], 'error');
                     errout |= true;

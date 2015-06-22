@@ -2,11 +2,11 @@
   "app": {
     "package": "app_name",
     "description": {
-      "value": "Play the famous zen tunes in your help desk.",
+      "value": "Store your attachments with the Attachment Library.",
       "title": "app description"
     },
     "name": {
-      "value": "Buddha Machine",
+      "value": "Attachment Library",
       "title": "app name"
     },
     "parameters": {
@@ -20,43 +20,164 @@
   },
 
   "loading": {
-    "value": "Welcome to this Sample App",
+    "value": "Welcome to the amazing",
     "title": "loading placeholder"
   },
-
-  "fetch": {
+  
+  "add": {
     "done": {
-      "value": "Good",
-      "title": "fetch success"
+      "value": "Item(s) Successfully Added.",
+      "title": "add success"
     },
     "fail": {
-      "value": "failed to fecth information from the server",
-      "title": "fetch failure"
+      "value": "Item(s) could not be added.  Please try again or contact your administrator.",
+      "title": "add failure"
+    }
+  },
+  
+  "errors": {
+    "url": {
+      "value": "Please provide a valid URL (must include 'https').",
+      "title": "Invalid URL for external file upload"
+    },
+    "nickname": {
+      "value": "Please provide a nickname for the file.",
+      "title": "Invalid nickname for external file upload"
+    },
+    "type": {
+      "value": "Please select the type of file to import.",
+      "title": "No attachment type selected (image or text) for external file upload."
+    },
+    "ticket_empty":{
+      "value": "No attachments found",
+      "title": "No attachments found in ticket."
+    },
+    "library_empty":{
+      "value": "Nothing here yet!",
+      "title": "No attachments found in library."
+    }
+  },    
+  
+  "delete": {
+    "done": {
+      "value": "Item deleted successfully",
+      "title": "delete success"
+    },
+    "fail": {
+      "value": "Oops! Something went wrong.",
+      "title": "delete failure"
     }
   },
 
-  "id": {
-    "value": "ID",
-    "title": "user id"
+  "markdown": {
+    "value":"Image from Markdown",
+    "title":"Markdown alt text"
   },
-
-  "email": {
-    "value": "Email",
-    "title": "user email"
+  
+  "external": {
+    "title": {
+      "value": "Add File from Web",
+      "title": "External File Upload Title"
+    },
+    "url": {
+      "value": "Enter external file URL here!",
+      "title": "Enter external file URL here!"
+    },
+    "name": {
+      "value": "Enter a name for the file here!",
+      "title": "Enter a name for the file here!"
+    },
+    "type": {
+      "value": "Attachment type:",
+      "title": "Attachment type:"
+    },
+    "image": {
+      "value": "Image",
+      "title": "Image"
+    },
+    "text": {
+      "value": "Text",
+      "title": "Text"
+    },
+    "add": {
+      "value": "Add to Library",
+      "title": "Add to Library"
+    }
   },
-
-  "name": {
-    "value": "Name",
-    "title": "user name"
+  
+  "ticket": {
+    "add": {
+      "value": "Add Item(s) to Library",
+      "title": "Add selected item(s) to library"
+    },
+    "preview": {
+      "value": "Preview Item (only one may be selected)",
+      "title": "Preview Item"
+    },
+    "embed": {
+      "value": "Add Image(s) to ticket as embedded image(s)",
+      "title": "Embed Image(s)"
+    },
+    "link": {
+      "value": "Add Item(s) to ticket as link(s)",
+      "title": "Link Item"
+    },
+    "document": {
+      "value": "Document Preview",
+      "title": "Document Preview"
+    },
+    "close": {
+      "value": "Close",
+      "title": "Close"
+    }
   },
-
-  "role": {
-    "value": "Role",
-    "title": "user role"
+  
+  "layout": {
+    "library": {
+      "value": "Library",
+      "title": "Library"
+    },
+    "ticket": {
+      "value": "Ticket",
+      "title": "Ticket"
+    },
+    "external": {
+      "value": "External",
+      "title": "External"
+    }
   },
-
-  "groups": {
-    "value": "Groups",
-    "title": "user groups"
+  
+  "library": {
+    "remove": {
+      "value": "Remove Item(s) from Library",
+      "title": "Remove Item(s) from Library"
+    },
+    "preview": {
+      "value": "Preview Item (only one may be selected)",
+      "title": "Preview Item"
+    },
+    "embed": {
+      "value": "Add Image(s) to ticket as embedded image(s)",
+      "title": "Embed Image(s)"
+    },
+    "link": {
+      "value": "Add Item(s) to ticket as link(s)",
+      "title": "Link Item"
+    },
+    "document": {
+      "value": "Document Preview",
+      "title": "Document Preview"
+    },
+    "close": {
+      "value": "Close",
+      "title": "Close"
+    }
+  }, 
+  
+  "alt" : {
+    "value":"No Name",
+    "title":"Alternate text for image if no name given"
   }
+
 }
+

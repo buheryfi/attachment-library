@@ -1,11 +1,11 @@
-<h4>Add File from Web</h4></br>
+<h4>{{t "external.title"}}</h4></br>
 <div class="external-form">
-    <input id="externalURL" type="text" placeholder="Enter external file URL here!"></input><br><br>
-    <input id="externalFileName" type="text" placeholder="Enter a name for the file here!"></input><br>
-    <br>Attachment type:
+    <input id="externalURL" type="text" placeholder="{{t "external.url"}}"></input><br><br>
+    <input id="externalFileName" type="text" placeholder="{{t "external.name"}}"></input><br>
+    <br>{{t "external.type"}}
     <div class="btn-group">
-        <button class="btn type-btn active" data-type="image">Image</button>
-        <button class="btn type-btn" data-type="text">Text</button>
+        <button class="btn type-btn active" data-type="image">{{t "external.image"}}</button>
+        <button class="btn type-btn" data-type="text">{{t "external.text"}}</button>
     </div><br>
-    <div id="addExternal" class="btn">Add to Library</div>
+    <div id="addExternal" class="btn">{{t "external.add"}}</div>
 </div>
