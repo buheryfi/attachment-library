@@ -264,7 +264,8 @@
                             data_url: imageObject.data_url,
                             type: imageObject.type,
                             data_title: imageObject.alt,
-                            data_content: imageObject.data_url
+                            data_content: imageObject.data_url,
+                            image_id: i
                         });    
                     }                
                 }
@@ -348,11 +349,14 @@
         removeImages: function(data){
             this.ajax('getField').done(function(data) {
                 var put_data = JSON.parse(data.user.user_fields[this.settings.field_key]);
-                self.$(".imgbox").each(function(i, val) {
-                    if (self.$(this).hasClass("highlight")){
-                        put_data.splice(i, 1);
-                    }
+                var removeValFromIndex = [];
+
+                self.$(".highlight").each(function(i, val) {
+                    removeValFromIndex.push(self.$(this).attr('id'));
                 });
+                for (var i = removeValFromIndex.length -1; i >=0; i--){
+                    put_data.splice(removeValFromIndex[i],1);
+                }
                 put_data = JSON.stringify(put_data).replace(/"/g, "\\\"");
                 this.ajax('putField', put_data).done(function(data) {
                     self.library = data.user.user_fields[this.settings.field_key];

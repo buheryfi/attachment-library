@@ -1,6 +1,6 @@
 {
   "app": {
-    "package": "app_name",
+    "package": "Attachment Library",
     "description": {
       "value": "Store your attachments with the Attachment Library.",
       "title": "app description"
@@ -60,7 +60,7 @@
   
   "remove": {
     "done": {
-      "value": "Item(s) removed successfully",
+      "value": "Item(s) removed successfully.",
       "title": "delete success"
     },
     "fail": {
