@@ -16,22 +16,8 @@
         events: {
             'app.activated':'initialize',
             'click .btn':'toggleButtonGroup',
-            'click li.clickable':'add_colour', // add class to selected images
-
-        // currently we can use the image element's attributes for display data, or
-        // we could make a request to the API with the attachment ID (which we don't currently store), or
-        // we could look at the bookmarks object/string that we store ont he user.
-        // If we load it once and save it in app memory, then we could reference it from any other function
-        // currently, I have to pull the data again with show_details, but would be easier to reference
-        // an object that is global?
+            'click li.clickable':'add_colour', 
         
-        // Show details might work best if using the stored object separately,
-        // and on the Page tab it can reference the object created for the present ticket's attachments
-        
-        // This might also be better served by keeping an index in the objects, or id, and then simply grabbing the index on hover
-        // and populating the relevant variable for display.
-        // show more detailed information about a file when hovering over thumbnail
-
             'mouseover .more-info': function(e) {
               this.$(e.target).popover('show');
             },
@@ -42,17 +28,17 @@
                 if (this.$('#get_library').hasClass('active')){
                     this.renderLibrary(current_page);
                 } else if (this.$('#getImage').hasClass('active')) {
-                    this.getImages(current_page);
+                    this.renderTicket(current_page);
                 }
             },
             
-            //working with images on page
-            'click #getImage': 'getImages',  // switches template to get and shows all images on page as thumbnails in template
-            'click #add_images' : 'addToLibrary', // add selected images to library
+            //working with images in ticket
+            'click #getImage': 'renderTicket',
+            'click #add_images' : 'addToLibrary',
             'click #add_text' : 'addTextToLibrary',
 
             //working with images inside of library
-            'click #get_library':'getLibrary', // switches template to library and show images from library
+            'click #get_library':'renderLibrary', 
             'click #embed_images':'embedImages',
             'click #embed_link':'embedLinks',
             'click #remove_images':'removeImages',
@@ -60,18 +46,7 @@
 
             // working with Remote Content
             'click #getExternal': 'getExternal',
-            'click #addExternal': 'addExternalToLibrary',
-
-            // Growler notifications for external requests
-            'putField.done': function() {
-                services.notify(this.I18n.t('add.done'));
-            },
-            'putField.fail': function() {
-                services.notify(this.I18n.t('add.fail'));
-            }
-        },
-
-        resources: {
+            'click #addExternal': 'addExternalToLibrary'
         },
 
         requests: {
@@ -98,64 +73,69 @@
             self.user_id = this.currentUser().id();
         },
 
-        getImages: function(current_image_page) {
-            // load attachments from current page to allow interaction with them
-            var att = [];
+        renderTicket: function(current_image_page) {
+            // load all attachments from current ticket
+            var attachments = [];
 
-
-            // some thumbnails do not load on first page load, only on next page load. Why is that?
             if (typeof current_image_page !== "number"){
                 current_image_page = 0;
             }
             
+            this.comment().attachments().forEach(function(comment){
+                var object = {};
+
+                if (comment.contentType().indexOf("image") > -1) {
+                    object.url = comment.contentUrl();
+                    object.name = comment.filename();
+                    object.type = "image";
+                    attachments.push(object);
+                } else {
+                    object.url = comment.contentUrl();
+                    object.name = comment.filename();
+                    object.type = "text";
+                    attachments.push(object);
+                }
+            });
+            
             this.ticket().comments().forEach(function(comment){
-            // find all image and nonimage ticket attachments
                 comment.nonImageAttachments().forEach(function(nonImage){
                     var object = {};
                     object.url = nonImage.contentUrl();
                     object.name = nonImage.filename();
                     object.type = "text";
-                    att.push(object);
+                    attachments.push(object);
                 });
                 comment.imageAttachments().forEach(function(image){
                     var object = {};
                     object.url = image.contentUrl();
                     object.name = image.filename();
                     object.type = "image";
-                    att.push(object);
+                    attachments.push(object);
                 });
-            // find inline images from ticket comments
-                var str = comment.value();
-                str = str.replace(/\s/g, '');
-                var regex = str.match(/<img.+?src=[\"'](.+?)[\"'].*?>/gi);
-                if (regex !== null) {                    
-                    var url = regex[0].match(/src=[\"'](.+?)[\"']/gi);
-                    url = url.substring(5, url.length - 1);     
-                    var alt = regex[0].match(/alt=[\"'](.+?)[\"']/gi);
-                    
-                    if (alt !== null) {
-                        alt = alt.substring(5, alt.length - 1);
-                    } else { 
-                        alt = this.I18n.t('alt');
-                    }
-                    var object = {};
-                    object.url = url;
-                    object.name = alt;
-                    object.type = "image";
-                    att.push(object);
+                
+                var regex = comment.value().match(/<img.*src=["'](.*)["'].*">/gi);
+                if (regex !== null) {
+                    for (i = 0; i < regex.length; ++i) {
+                        var object = {};
+                        var url = regex[i].match(/src=["'](.+?)["']/gi);
+                        object.url = url.toString().substring(5, url[0].length - 1);
+                        var alt = regex[i].match(/alt=["'](.+?)["']/gi);
+                        object.name = (alt !== null) ? alt.toString().substring(5, alt[0].length - 1) : this.I18n.t('alt');
+                        object.type = "image";
+                        attachments.push(object);
+                    }                    
                 }
             });
             
             // if no images, show no images and break.
-            if(att.length === 0) {
+            if(attachments.length === 0) {
                 this.switchTo("ticket", {imageList: "<li class=\"imgbox\"><br>"+this.I18n.t('errors.ticket_empty')+"</li>"});
                 return;
             }
 
             //  render attachments
-            var number_of_items = att.length;
-            var pager = this.paginate(att, current_image_page, number_of_items);
-            
+            var number_of_items = attachments.length;
+            var pagination = this.paginate(attachments, current_image_page, number_of_items);
             var attachment;
             var attachmentList = "";
             var end_of_list = per_page*(current_image_page+1);
@@ -164,51 +144,41 @@
                 end_of_list = number_of_items;
             }
             for (var i = beg_of_list; i < end_of_list; i++){
-                if (att[i] !== null){
-                    if (att[i].type == "text"){
+                if (attachments[i] !== null){
+                    if (attachments[i].type == "text"){
                         attachmentList += this.renderTemplate("imgbox",
                         {
-                            type: att[i].type,
+                            type: attachments[i].type,
                             src: '',
-                            alt: att[i].name,
+                            alt: attachments[i].name,
                             height: 0,
                             width: 0,
                             top: 0,
                             left: 0,
-                            data_url: att[i].url,
-                            data_title: att[i].name,
-                            data_content: att[i].url
+                            data_url: attachments[i].url,
+                            data_title: attachments[i].name,
+                            data_content: attachments[i].url
                         });
-                    } else if (att[i].type == "image"){
-                        attachment = this.resizeImage(att[i].url);
-                        console.log(attachment);
+                    } else if (attachments[i].type == "image"){
+                        attachment = this.resizeImage(attachments[i].url);
                         attachmentList += this.renderTemplate("imgbox",
                         {
-                            type: att[i].type,
-                            src: att[i].url,
-                            alt: att[i].name,
+                            type: attachments[i].type,
+                            src: attachments[i].url,
+                            alt: attachments[i].name,
                             height: attachment.height,
                             width: attachment.width,
                             top: (82-attachment.height)/2,
                             left: (82-attachment.width)/2,
-                            data_url: att[i].url,
-                            data_title: att[i].name,
-                            data_content: att[i].url
+                            data_url: attachments[i].url,
+                            data_title: attachments[i].name,
+                            data_content: attachments[i].url
                         });
                     }
                     else {return;}
                 }
             }
-            this.switchTo("ticket", {imageList: attachmentList, pager: pager});
-        },
-
-        getLibrary: function() {
-            // load library page template
-            // load data from user field and render thumbnails
-            this.ajax('getField').done(function(data) {
-                self.library = data.user.user_fields[this.settings.field_key];
-                this.renderLibrary();
-            });
+            this.switchTo("ticket", {imageList: attachmentList, pagination: pagination});
         },
         
         paginate: function(array, current_page, number_of_items) {
@@ -216,91 +186,90 @@
             
             if (current_page === 0) { 
                 previous_page = 0;
-                navigation_html = '<button type="button" class="page_link" disabled value="'+previous_page+'"><-</button>';
+                navigation_html = '<button type="button" class="page_link left_end" disabled value="'+previous_page+'"><-</button>';
             } else {
                 previous_page = current_page - 1;
-                navigation_html = '<button type="button" class="page_link" value="'+previous_page+'"><-</button>';
+                navigation_html = '<button type="button" class="page_link left_end" value="'+previous_page+'"><-</button>';
             }
             
             for(var i = 0; i < number_of_pages; i++){
                 if (i == current_page){
-                    navigation_html += '<button type="button" class="page_link current" value="'+i+'">' + (i + 1) +'</button>';
+                    navigation_html += '<button type="button" class="page_link current middle" disabled value="'+i+'">' + (i + 1) +'</button>';
                 } else {
-                    navigation_html += '<button type="button" class="page_link" value="'+i+'">' + (i + 1) +'</button>';
+                    navigation_html += '<button type="button" class="page_link middle" value="'+i+'">' + (i + 1) +'</button>';
                 }
             }
             
             if (current_page+1 >= number_of_pages) { 
                 next_page = number_of_pages;
-                navigation_html += '<button type="button" class="page_link" disabled value="'+next_page+'">-></button>';
+                navigation_html += '<button type="button" class="page_link right_end" disabled value="'+next_page+'">-></button>';
             } else {
                 next_page = current_page + 1;
-                navigation_html += '<button type="button" class="page_link" value="'+next_page+'">-></button>';
+                navigation_html += '<button type="button" class="page_link right_end" value="'+next_page+'">-></button>';
             }
             
-            var pager = this.renderTemplate('pager', {
-                page_navigation: navigation_html
-            });
+            var pagination = this.renderTemplate('pagination', { page_navigation: navigation_html });
             
-            return pager;
+            return pagination;
         },
-        
-        renderLibrary: function(current_page) {
-            current_page = current_page || 0;
 
-            if(self.library == null) {
-                this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>"+this.I18n.t('errors.library_empty')+"</li>"});
-                return;
-            }
-
-            var res = self.library.split(";");
-            var number_of_items = res.length-1;
-            var pager = this.paginate(res, current_page, number_of_items);
-            
-            var img;
-            var imageList = "";
-            var end_of_list = per_page*(current_page+1);
-            var beg_of_list = per_page*current_page;
-            if (end_of_list > number_of_items) {end_of_list = number_of_items;}
-            
-            for (var i = beg_of_list; i < end_of_list; i++){
-                if (res[i] !== null){
-                    var attachment = res[i].split(",");
-                    var imageObject = {};
-                    if (attachment[2] == "image"){
-                        imageObject = this.resizeImage(attachment[0]);
-                        imageObject.alt = attachment[1];
-                        imageObject.data_url = attachment[0];
-                        imageObject.top = (82-imageObject.height)/2;
-                        imageObject.left = (82-imageObject.width)/2;
-                        imageObject.type = "image";
-                    } else if (attachment[2] == "text") {
-                        imageObject = new Image();
-                        imageObject.src = '';
-                        imageObject.height = 0;
-                        imageObject.width = 0;
-                        imageObject.alt = attachment[1];
-                        imageObject.data_url = attachment[0];
-                        imageObject.top = 0;
-                        imageObject.left = 0;
-                        imageObject.type = "text";
-                    }
-                    imageList += this.renderTemplate("imgbox",
-                    {
-                        alt: imageObject.alt,
-                        src: imageObject.src,
-                        height: imageObject.height,
-                        width: imageObject.width,
-                        top: imageObject.top,
-                        left: imageObject.left,
-                        data_url: imageObject.data_url,
-                        type: imageObject.type,
-                        data_title: imageObject.alt,
-                        data_content: imageObject.data_url
-                    });    
-                }                
-            }
-            this.switchTo("library", {imageList: imageList, pager: pager});
+        renderLibrary: function() {
+            // load library page template, get data from user field and render thumbnails
+            this.ajax('getField').done(function(data) {
+                self.library = data.user.user_fields[this.settings.field_key];
+                current_page |= 0;
+    
+                if(self.library == null) {
+                    this.switchTo("library", {imageList: "<li class=\"imgbox\"><br>"+this.I18n.t('errors.library_empty')+"</li>"});
+                    return;
+                }
+                
+                var attachment_list = JSON.parse(self.library);
+                var number_of_items = attachment_list.length;
+                var pagination = this.paginate(attachment_list, current_page, number_of_items);           
+                var img;
+                var imageList = "";
+                var end_of_list = per_page*(current_page+1);
+                var beg_of_list = per_page*current_page;
+                if (end_of_list > number_of_items) {
+                    end_of_list = number_of_items;
+                }
+                
+                for (var i = beg_of_list; i < end_of_list; i++){
+                    if (attachment_list[i] !== null){
+                        var imageObject = {};
+                        if (attachment_list[i].type == "image"){
+                            imageObject = this.resizeImage(attachment_list[i].url);
+                            imageObject.top = (82-imageObject.height)/2;
+                            imageObject.left = (82-imageObject.width)/2;
+                        } else if (attachment_list[i].type == "text") {
+                            imageObject = new Image();
+                            imageObject.height = 0;
+                            imageObject.width = 0;
+                            imageObject.top = 0;
+                            imageObject.left = 0;
+                        }
+                        imageObject.alt = attachment_list[i].alt;
+                        imageObject.data_url = attachment_list[i].url;
+                        imageObject.type = attachment_list[i].type;
+    
+                        imageList += this.renderTemplate("imgbox",
+                        {
+                            alt: imageObject.alt,
+                            src: imageObject.src,
+                            height: imageObject.height,
+                            width: imageObject.width,
+                            top: imageObject.top,
+                            left: imageObject.left,
+                            data_url: imageObject.data_url,
+                            type: imageObject.type,
+                            data_title: imageObject.alt,
+                            data_content: imageObject.data_url
+                        });    
+                    }                
+                }
+                this.switchTo("library", {imageList: imageList, pagination: pagination});
+            });
         },
 
         resizeImage: function(object) {
@@ -314,7 +283,7 @@
                 }
                 img.height *= ratio;
                 img.width *= ratio;*/
-                return img;            
+            return img;            
         },
 
         toggleButtonGroup: function(event) {
@@ -337,52 +306,65 @@
                 this.$(event.target).toggleClass("highlight");
             }
             var numItems = this.$(".highlight").length;
-            if ( numItems > 1) {this.$("#preview_item").prop("disabled", true); }
-            else if ( numItems <= 1) {this.$("#preview_item").prop("disabled", false); }
+            if ( numItems > 1) {
+                this.$("#preview_item").prop("disabled", true); 
+            } else if ( numItems <= 1) {
+                this.$("#preview_item").prop("disabled", false); 
+            }
             this.$(".hidden").removeClass("hidden");
         },
 
-        //add attachments to library, including URL, name, and type (txt or image)
+        // add attachments to library, including URL, name, and type (txt or image)
         addToLibrary: function(data){
             var value = this.ajax('getField', data).done(function(data) {
-                var put_data = '';
+                var put_data = (data.user.user_fields[this.settings.field_key]) ? JSON.parse(data.user.user_fields[this.settings.field_key]) :[] ;
                 this.$(".highlight").each(function(i, val) {
                     var alt = val.children[0].children[0].getAttribute("alt");
-                    alt = alt.replace(/[,;]/g , ' ');
                     if (val.getAttribute("class").indexOf("image") !== -1 ) {
-                        put_data += val.children[0].children[0].getAttribute("src")+',';
-                        put_data += alt+',';
-                        put_data += "image;";
+                        var image_array = {};
+                        image_array.url = val.children[0].children[0].getAttribute("src");
+                        image_array.alt = alt;
+                        image_array.type = "image";
+                        put_data.push(image_array);
                     }
                     else if (val.getAttribute("class").indexOf("doc")) {
-                        put_data += val.children[0].children[0].getAttribute("data-contentURL")+',';
-                        put_data += alt+',';
-                        put_data += "text;";
+                        var doc_array = {};
+                        doc_array.url = val.children[0].children[0].getAttribute("data-contentURL");
+                        doc_array.alt = alt;
+                        doc_array.type = "text";
+                        put_data.push(doc_array);
                     }
                 });
-                var value = data.user.user_fields[this.settings.field_key];
-                if (value !== null) { bestData = value+put_data;}
-                else { bestData = put_data;}
-                this.ajax('putField', bestData);
+                put_data = JSON.stringify(put_data).replace(/"/g, "\\\"");
+                this.ajax('putField', put_data).done(function() {
+                    services.notify(this.I18n.t('add.done'));
+                }).fail(function() {
+                    services.notify(this.I18n.t('add.fail'));
+                });
             });
         },
 
-        // will remove the thumbnail URL from user field based on user selection
-        // this does not work with new data model.
-        // currently we are removing based on matching a URL string.
-        // this needs to account for a different data structure, using the index
+        // Remove attachment from user field
         removeImages: function(data){
-            self.$(".highlight").each(function(i, val) {
-                var string = val.children[0].children[0].getAttribute("data-contentURL")+';';
-                self.library = self.library.replace(string, '');
-            });
-            this.ajax('putField', self.library).done(function(data) {
-                self.library = data.user.user_fields[this.settings.field_key];
-                this.renderLibrary();
-            });
+            this.ajax('getField').done(function(data) {
+                var put_data = JSON.parse(data.user.user_fields[this.settings.field_key]);
+                self.$(".imgbox").each(function(i, val) {
+                    if (self.$(this).hasClass("highlight")){
+                        put_data.splice(i, 1);
+                    }
+                });
+                put_data = JSON.stringify(put_data).replace(/"/g, "\\\"");
+                this.ajax('putField', put_data).done(function(data) {
+                    self.library = data.user.user_fields[this.settings.field_key];
+                    services.notify(this.I18n.t('remove.done'));
+                    this.renderLibrary();
+                }).fail(function() {
+                    services.notify(this.I18n.t('remove.fail'));
+                });
+            });               
         },
 
-        // will embed an image with Markdown into ticket based on user action
+        // Embed image with Markdown based on user action
         embedImages: function(data){
             put_data = '';
             self.$(".highlight").each(function(i, val) {
@@ -403,10 +385,8 @@
             this.comment().text(current_text);
         },
 
-        // show preview of selected Text File using Google Docs API in a modal Iframe
+        // Preview item in iframe - use Google Docs API for text files
         previewItem: function(data, target){
-            //if image, use modal to show item, if doc, use google API
-            // need to get this centered and change title for images to image preview rather than doc preview
             var url;
             if (self.$(".highlight").hasClass('image')) {
                 url = self.$(".highlight > div > img").attr('data-contenturl');
@@ -422,8 +402,7 @@
             this.switchTo("external");
         },
 
-        //  This allows the end-user to add images or files hosted externally to be stored
-        //  inside of their library
+        //  Allow end-user to add externally hosted files to library
         addExternalToLibrary: function() {
             var ERRORS = {
               ext: [
@@ -448,13 +427,23 @@
             });
             if(errout) return;
             fields.forEach(function(d) {
+                d.removeClass('field-error'); 
                 this.$(d).val("");
             });
-            var toAdd = values.join(',')+';';
+
             this.ajax('getField').done(function(data) {
-                var newValue, value = data.user.user_fields[this.settings['field_key']];
-                newValue = value ? value + toAdd : toAdd;
-                this.ajax('putField', newValue);
+                var put_data = (data.user.user_fields[this.settings.field_key]) ? JSON.parse(data.user.user_fields[this.settings.field_key]) :[] ;
+                var image_array = {};
+                image_array.url = values[0];
+                image_array.alt = values[1];
+                image_array.type = values[2];
+                put_data.push(image_array);
+                put_data = JSON.stringify(put_data).replace(/"/g, "\\\"");
+                this.ajax('putField', put_data).done(function() {
+                    services.notify(this.I18n.t('add.done'));
+                }).fail(function() {
+                    services.notify(this.I18n.t('add.fail'));
+                });
             });
         },
 

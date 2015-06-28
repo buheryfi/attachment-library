@@ -1,9 +1,9 @@
 {
-  "name": "Burmaglot First App",
+  "name": "Attachment Library",
   "author": {
-    "name": "James Peterson",
+    "name": "James Peterson Creighton Long",
     "email": "japeterson@zendesk.com",
-    "url": "http://support.burmaglot.com"
+    "url": "http://github.com/buheryfi"
   },
   "defaultLocale": "en",
   "private": false,

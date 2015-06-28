@@ -3,7 +3,7 @@
     {{{imageList}}}
   </ul>
 </div>
-{{{pager}}}
+{{{pagination}}}
 <button class="hidden btn btn-large" id="add_images">{{t "ticket.add"}}</button></br>
 <button class="hidden btn btn-large" id="preview_item">{{t "ticket.preview"}}</button></br>
 <button class="hidden btn btn-large" id="embed_images">{{t "ticket.embed"}}</button></br>

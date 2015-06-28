@@ -1,3 +1,38 @@
+div#page_navigation {
+    text-align: center;
+}
+
+button.page_link {
+    background: white;
+    padding: 4px;
+    color: black;
+}
+
+button.current {
+	background-color: #E0E0E0;
+	color: gray;
+}
+
+button.left_end {
+    border-left: 2px gray solid;
+    border-right: 0;
+    border-bottom: 2px gray solid;
+    border-top: 2px gray solid;
+    border-radius: 3px 0 0 3px;
+}
+
+button.middle {
+    border-left: 2px gray solid;
+    border-right: 0;
+    border-bottom: 2px gray solid;
+    border-top: 2px gray solid;
+}
+
+button.right_end {
+    border: 2px gray solid;
+    border-radius: 0 3px 3px 0;
+}
+
 img.clickable:hover {
 	border: 5px green solid;
 }
@@ -79,7 +114,7 @@ img.clickable {
 }
 
 .highlight {
-	box-shadow: 0px 0px 6px #679200;
+	box-shadow: 0px 0px 6px 3px #679200;
 	border: 2px solid #78A300;
 }
 

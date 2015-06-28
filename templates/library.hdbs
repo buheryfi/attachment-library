@@ -2,8 +2,8 @@
   <ul class="boxlist">
     {{{imageList}}}
   </ul>
-{{{pager}}}
 </div>
+{{{pagination}}}
 <button class="hidden btn btn-large" id="embed_images">{{t "library.embed"}}</button></br>
 <button class="hidden btn btn-large" id="embed_link">{{t "library.link"}}</button></br>
 <button class="hidden btn btn-large" id="remove_images">{{t "library.remove"}}</button></br>

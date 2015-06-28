@@ -58,9 +58,9 @@
     }
   },    
   
-  "delete": {
+  "remove": {
     "done": {
-      "value": "Item deleted successfully",
+      "value": "Item(s) removed successfully",
       "title": "delete success"
     },
     "fail": {
@@ -80,7 +80,7 @@
       "title": "External File Upload Title"
     },
     "url": {
-      "value": "Enter external file URL here!",
+      "value": "Enter external file URL here! Must start with https://",
       "title": "Enter external file URL here!"
     },
     "name": {
@@ -123,8 +123,8 @@
       "title": "Link Item"
     },
     "document": {
-      "value": "Document Preview",
-      "title": "Document Preview"
+      "value": "Attachment Preview",
+      "title": "Attachment Preview"
     },
     "close": {
       "value": "Close",
@@ -165,8 +165,8 @@
       "title": "Link Item"
     },
     "document": {
-      "value": "Document Preview",
-      "title": "Document Preview"
+      "value": "Attachment Preview",
+      "title": "Attachment Preview"
     },
     "close": {
       "value": "Close",
